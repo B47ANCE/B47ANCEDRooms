@@ -3,6 +3,14 @@
   "canonical": "VERSION",
   "mirrors": [
     {
+      "path": "docs/WORKSHOP_DESCRIPTION.md",
+      "pattern": "^Version (?P<version>\\S+)\\.$"
+    },
+    {
+      "path": "docs/WORKSHOP_CHANGELOG.md",
+      "pattern": "^# Version (?P<version>\\S+)$"
+    },
+    {
       "path": "docs/CLEANING_API.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
     },
