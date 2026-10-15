@@ -3,6 +3,10 @@
   "canonical": "VERSION",
   "mirrors": [
     {
+      "path": "docs/CLEANING_API.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
       "path": "README.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
     },

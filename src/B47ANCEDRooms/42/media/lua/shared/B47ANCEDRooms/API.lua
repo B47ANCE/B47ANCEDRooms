@@ -25,7 +25,7 @@ local function raw(player,id,revision)
 end
 function A.capabilities()
  return {api=1,version=I.version,ready=true,editor=true,nativeOverrides=true,delegatedPolicies=true,
-  boundaries={quartermasterGrant=true,vanillaFinalMutation=false,entry=false,doors=false,building=false,destruction=false,cleaning=false}}
+  cleaning=1,boundaries={quartermasterGrant=true,vanillaFinalMutation=false,entry=false,doors=false,building=false,destruction=false,cleaning=true}}
 end
 function A.subscribe(fn) if type(fn)~='function' then return end;listeners[fn]=true;return function() listeners[fn]=nil end end
 function B47ANCEDRooms.changed(revision)
@@ -147,4 +147,5 @@ function A.openEditor(playerNum,owner,done)
  require 'B47ANCEDRooms/Client'
  return require('B47ANCEDRooms/Editor').open(playerNum,owner,done)
 end
+require('B47ANCEDRooms/Cleaning')(A)
 return A

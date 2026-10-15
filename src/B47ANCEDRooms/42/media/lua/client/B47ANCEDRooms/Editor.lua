@@ -173,7 +173,7 @@ function E:permissions()
  local private=menu:addOption(tr('RoomPrivate'),self,function() policy({}) end);private.notAvailable=not room.assigned
  local deposit=menu:addOption(tr('RoomDepositOnly'),self,function() policy({discover='members',inspect='members',withdraw='none',deposit='members'}) end);deposit.notAvailable=not room.assigned
  local withdraw=menu:addOption(tr('RoomWithdrawOnly'),self,function() policy({discover='members',inspect='members',withdraw='members',deposit='none'}) end);withdraw.notAvailable=not room.assigned
-  for _,action in ipairs({'discover','inspect','withdraw','deposit','configure'}) do
+  for _,action in ipairs({'discover','inspect','withdraw','deposit','configure','clean'}) do
   local which=action;local option=menu:addOption(tr('RoomAction_'..which));local sub=ISContextMenu:getNew(menu);menu:addSubMenu(option,sub);option.notAvailable=not room.assigned
   for _,rule in ipairs({'owner','members','none'}) do local value=rule
    sub:addOption(tr('RoomRule_'..value),self,function()
@@ -184,7 +184,7 @@ function E:permissions()
  local who=self.accountEntry:getInternalText():match('^%s*(.-)%s*$')
  local visitor=menu:addOption(tr('RoomVisitor'));visitor.notAvailable=who=='' or not room.assigned
  local sub=ISContextMenu:getNew(menu);menu:addSubMenu(visitor,sub)
-  for _,action in ipairs({'discover','inspect','withdraw','deposit','configure'}) do local which=action
+  for _,action in ipairs({'discover','inspect','withdraw','deposit','configure','clean'}) do local which=action
   for _,allow in ipairs({true,false}) do local granted=allow
    sub:addOption(tr(granted and 'RoomGrant' or 'RoomDeny',tr('RoomAction_'..which)),self,function()
     local p=Q.Identity.copy(room.policy or {mode='private',rules={},grants={}});p.mode='private';p.grants[who]=p.grants[who] or {};p.grants[who][which]=granted;self:submit('policy',{policy=p})

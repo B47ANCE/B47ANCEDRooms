@@ -1,6 +1,6 @@
 local I=require 'B47ANCEDRooms/Identity'
 local G=require 'B47ANCEDRooms/Geometry'
-local P={actions={discover=true,inspect=true,withdraw=true,deposit=true,configure=true}};B47ANCEDRooms.Policy=P
+local P={actions={discover=true,inspect=true,withdraw=true,deposit=true,configure=true,clean=true}};B47ANCEDRooms.Policy=P
 function P.admin(player) return player and player.getAccessLevel and tostring(player:getAccessLevel()):lower()=='admin' end
 function P.houses()
  if not SafeHouse or type(SafeHouse.getSafehouseList)~='function' then return nil,'unavailable' end
@@ -47,7 +47,7 @@ function P.base(player,square,action)
  local ok,allowed=pcall(SafeHouse.isSafehouseAllowLoot,square,player)
  if not ok then return false,'unavailable' end
  if not allowed then return false,'denied' end
- if action=='configure' then
+ if action=='configure' or action=='clean' then
   if not SafeHouse.isSafehouseAllowInteract then return false,'unavailable' end
   ok,allowed=pcall(SafeHouse.isSafehouseAllowInteract,square,player)
   if not ok then return false,'unavailable' end
