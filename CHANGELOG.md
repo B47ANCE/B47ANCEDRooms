@@ -2,8 +2,9 @@
 
 ## [0.1.0-dev.2]
 - Compatible visual bug fix (PATCH scope; next development checkpoint): UI outlines now use native player-specific zoom/camera/viewport projections instead of the world-render line helper. Saved/draft/split/overlap outlines, invalid marks and drag rectangles share the corrected path. No API, protocol, sandbox, save or authority changes.
+- Explicitly authorized Workshop MP testing update: preserve prior package/provenance with hashes, reconcile current packaging, and publish to the existing item without changing visibility. Native visual acceptance and dedicated G7 remain NOT TESTED; stable G8 BLOCKED.
 - [TESTED offline Windows/Lua 5.1] Projection regression fails on the previous renderer and passes with the fix; the complete Rooms suite passes. Native zoom/pan rendering NOT TESTED. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
-- Source iteration only. Historical 0.1.0-dev.1 publication evidence and generated artifacts remain unchanged; the old ZIP in dist/current fails current-version packaging checks until separately authorized reconciliation/build. No packaging, deployment, game/server launch or Workshop upload.
+- Historical source-fix checkpoint f0d4857: source iteration only; the preserved old ZIP in dist/current blocked version checks before subsequent publish authorization. No packaging, deployment, game/server launch or Workshop upload occurred during that source fix.
 
 ## [0.1.0-dev.1]
 - First authorized Workshop testing distribution of this existing development checkpoint. Add canonical Workshop text and explicit Lua-only staging/provenance checks; assigned item identity is recorded after Steam allocation. Gameplay/API/schema and authority are unchanged. G7 NOT TESTED / BLOCKED; stable G8 BLOCKED.

@@ -7,7 +7,7 @@ Version 0.1.0-dev.2.
 
 MP testing build - dedicated multiplayer NOT TESTED
 
-Development source: fixes room-outline projection while zooming. This version has not been uploaded; the last published build is 0.1.0-dev.1.
+Fixes room outlines drifting instead of scaling when zooming. Outlines now follow the player camera and zoom; native visual acceptance remains pending.
 
 ## Features
 - Designate rooms from the world context menu using native/structural candidates, rectangles, paint/erase and explicit floors. Preview, name, undo/redo, merge/split, then confirm changes.

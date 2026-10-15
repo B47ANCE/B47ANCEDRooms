@@ -66,8 +66,8 @@
       "reason": "Immutable 0.1.0-dev.1 publication/distribution evidence, not proof of current source or runtime correctness."
     },
     {
-      "reference": "dist/current/B47ANCEDRooms-0.1.0-dev.1.zip and adjacent provenance/hash records",
-      "reason": "Preserved prior published artifacts; no cleanup or packaging requested. The unchanged artifact glob continues to flag these as stale for current release checks."
+      "reference": "dist/workshop-publish/0.1.0-dev.2-outline/previous-current and preservation-ledger.json",
+      "reason": "Prior 0.1.0-dev.1 published artifacts preserved with exact hashes during explicitly authorized test-upload preparation. No historical package was relabeled or deleted."
     }
   ]
 }

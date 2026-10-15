@@ -58,15 +58,18 @@ $roomsPython = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dep
 git diff --check
 ```
 
-The version checker passed before edits. After edits all declared source mirrors
+At source-fix checkpoint f0d4857, the version checker passed before edits. After edits all declared source mirrors
 and the new changelog entry match 0.1.0-dev.2. The full checker deliberately FAILS
 on the unchanged historical 0.1.0-dev.1 ZIP filename and its embedded mod.info
 under dist/current. It must remain a blocking packaging mismatch, not a warning
 or a claimed version PASS. That published ZIP and adjacent provenance/checksum
 files were not rebuilt, relabeled, moved or deleted. The publication report is
 classified historical, and its evidence remains tied to the original version.
-No current-version package exists. Packaging/reconciliation requires separate
-authorization; stable G8 remains BLOCKED.
+No current-version package existed at that source checkpoint. The subsequent
+explicit publish request authorizes packaging/reconciliation and an MP testing
+upload. The old files are now preserved with exact hashes under
+dist/workshop-publish/0.1.0-dev.2-outline/previous-current, with no deletion.
+Current offline/package checks must pass before upload; stable G8 remains BLOCKED.
 
 [RUNTIME GATE] Open the Rooms editor over a known room. Zoom fully in/out and
 through intermediate levels while stationary, walking and panning. Confirm saved
@@ -75,4 +78,6 @@ drag rectangles remain attached to the same floor tiles. Repeat upstairs and
 for another local player's viewport if used. Native rendering NOT TESTED for
 this iteration. Dedicated G7 remains BLOCKED / NOT TESTED and stable G8 BLOCKED;
 the project's stricter gates are retained even for this local presentation fix.
-No game/server launch, packaging, deployment or Workshop publication occurred.
+No game/server launch, packaging, deployment or Workshop publication occurred
+during the source fix. The later authorized test distribution is recorded
+separately and does not establish native rendering or MP acceptance.
