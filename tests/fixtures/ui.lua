@@ -19,6 +19,8 @@ function Widget:initialise() end
 function Widget:isVisible() return self.visible end
 function Widget:isFocused() return self.focused or false end
 function Widget:setWantKeyEvents(on) self.wantKeyEvents=on end
+function Widget:bringToTop() self.raised=(self.raised or 0)+1 end
+function Widget:onFocus() self:bringToTop() end
 function Widget:removeChild(child)
     for i,v in ipairs(self.children) do if v==child then table.remove(self.children,i); break end end
 end
@@ -136,6 +138,6 @@ function getSoundManager() return {playUISound=function() end} end
 function getMouseX() return 1 end
 function getMouseY() return 1 end
 local shiftDown,ctrlDown=false,false
-Keyboard={KEY_A=30}
+Keyboard={KEY_A=30,KEY_ESCAPE=1,KEY_Z=44,KEY_Y=21}
 function isCtrlKeyDown() return ctrlDown end
 function isShiftKeyDown() return shiftDown end

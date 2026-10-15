@@ -105,4 +105,19 @@ assert(late.closed and not late.capture and p:isVisible())
 for _,callback in ipairs(queued) do callback({status='ok',rooms={},revision=100}) end
 assert(late.closed and not late.draft,'late callback resurrected removed editor')
 Q.Client.request=request
+-- Even a focus/input event already queued for the editor cannot raise it above
+-- its active confirmation, alter the preview, or close it via Escape/B.
+f.advance(3000);local guarded=E.open(0,p);guarded.detection=nil
+guarded.draft:set(assert(Q.Geometry.normalize({{0,0,0,0}})));guarded.cursor={x=0,y=0,z=0}
+local guardedGeometry=guarded.draft.geometry;local raised=0;local destroyed=0
+guarded.first={x=0,y=0,z=0};local first=guarded.first
+guarded.b47Dialog={bringToTop=function() raised=raised+1 end,destroy=function(self)
+ assert(guarded.closed,'popup closed before owner was marked closed')
+ destroyed=destroyed+1;self.closed=true;guarded.b47Dialog=nil
+end}
+guarded:onFocus();guarded:onMouseDown(100,100);guarded:onMouseMove(1,1);guarded:onMouseUp(100,100)
+guarded:onRightMouseDown();assert(guarded.first==first,'right click changed preview behind confirmation')
+guarded:onKeyPress(Keyboard.KEY_ESCAPE);guarded:onJoypadDown(Joypad.BButton);guarded.worldFocus=true;guarded:onJoypadDirRight()
+assert(raised==2 and not guarded.closed and guarded.cursor.x==0 and guarded.draft.geometry==guardedGeometry,'editor input escaped modal guard')
+guarded:closeEditor();guarded:closeEditor();assert(destroyed==1 and not guarded.b47Dialog,'owner teardown leaked or destroyed popup twice')
 print('PASS OFFLINE room editor: zoom/camera/viewport outline projection, mouse/controller rectangles, bounded preview history, explicit save, cancellation/late replies, capture/focus cleanup, themed controls and preserved sorting selections')

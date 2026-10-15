@@ -1,6 +1,8 @@
 # B47ANCE'd Rooms
 
-Project Version: 0.1.0-dev.2
+Project Version: 0.1.0-dev.3
+
+Current source adds confirmation layering/lifecycle fixes and consistent two-button Rooms dialogs. This development iteration is not packaged, deployed or published. See the [UI audit](docs/UI_AUDIT.md) for findings, offline evidence and in-game checks. The published Workshop build remains 0.1.0-dev.2. The preserved published ZIP under dist/current deliberately blocks current-version packaging checks until separately authorized reconciliation/build.
 
 Standalone Lua-only room designation and delegated room-policy service for Project Zomboid Build 42.21.0. Mod ID **B47ANCEDRooms**. The zoom-outline fix is published as version 0.1.0-dev.2 to [Workshop item 3820077442](https://steamcommunity.com/sharedfiles/filedetails/?id=3820077442), an MP testing build with native visual acceptance pending. Quartermaster is optional and is never required by Rooms.
 

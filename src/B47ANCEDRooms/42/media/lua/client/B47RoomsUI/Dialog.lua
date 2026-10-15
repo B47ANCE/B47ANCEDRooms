@@ -1,4 +1,4 @@
-require 'ISUI/ISModalDialog'
+require 'ISUI/ISPanelJoypad'
 require 'B47RoomsUI/Controls'
 local U=B47RoomsUI;local D={};U.Dialog=D
 function D.decorate(dialog,playerNum,owner)
@@ -34,38 +34,84 @@ function D.decorate(dialog,playerNum,owner)
   end
  end
  U.bounds(dialog,playerNum)
- local destroy=dialog.destroy
- dialog.destroy=function(self,...)
-  if destroy then destroy(self,...) end
-  U.Focus.restore(playerNum,owner)
- end
  return dialog
 end
+function D.active(owner)
+ local dialog=owner and owner.b47Dialog
+ return dialog and not dialog.closed and not dialog.removed and dialog or nil
+end
+function D.close(owner)
+ local dialog=D.active(owner);if dialog then dialog:destroy() end
+end
 function D.confirm(playerNum,text,labels,callback,owner)
- local dialog=ISModalDialog:new(0,0,500,240,text,true,nil,function(_,button) callback(button.internal=='YES' and 'accept' or 'cancel') end,playerNum)
- dialog:initialise();dialog:addToUIManager();D.decorate(dialog,playerNum,owner)
+ if owner and (owner.closed or owner.removed) then return end
+ local existing=D.active(owner);if existing then existing:bringToTop();return existing end
+ local left,top=getPlayerScreenLeft(playerNum),getPlayerScreenTop(playerNum)
+ local width,height=getPlayerScreenWidth(playerNum),getPlayerScreenHeight(playerNum)
+ -- A viewport-sized input shield sits below the confirmation in the native
+ -- top layer. It never captures the mouse or changes global modal/game state.
+ local shield=ISPanelJoypad:new(left,top,width,height);shield:initialise();shield:instantiate()
+ shield.prerender=function() end
+ for _,event in ipairs({'onMouseDown','onMouseUp','onRightMouseDown','onRightMouseUp','onMouseMove','onMouseWheel'}) do shield[event]=function() return true end end
+ shield:addToUIManager();shield:setAlwaysOnTop(true)
+ -- Own the two controls. Do not inherit ISModalDialog's decorated/native
+ -- controls, focus shortcuts or game-speed side effects on destruction.
+ local dialog=ISPanelJoypad:new(left,top,500,240);dialog:initialise();dialog:instantiate()
+ dialog.text=text;dialog.b47Shield=shield;dialog.playerNum=playerNum
+ if owner then owner.b47Dialog=dialog;owner.down=false;if owner.setCapture then owner:setCapture(false) end end
  local armed=getTimestampMs()+250
- dialog.yes:setTitle(labels.accept);dialog.no:setTitle(labels.cancel)
- U.skin(dialog.yes,'button','primary');U.skin(dialog.no,'button')
+ local function liveOwner() return not owner or not owner.closed and not owner.removed end
+ function dialog:destroy()
+  if self.closed then return end
+  self.closed=true;self.removed=true;self:setWantKeyEvents(false);self:setVisible(false)
+  if owner and owner.b47Dialog==self then owner.b47Dialog=nil end
+  U.Tooltip.dispose(self);ISPanelJoypad.removeFromUIManager(self)
+  shield:setVisible(false);ISPanelJoypad.removeFromUIManager(shield)
+  local restore=owner and liveOwner() and owner:isVisible() and owner or nil
+  if restore then restore:bringToTop() end
+  U.Focus.restore(playerNum,restore)
+ end
+ dialog.removeFromUIManager=dialog.destroy;shield.removeFromUIManager=function() dialog:destroy() end
+ local function finish(result)
+  if dialog.closed or not liveOwner() or result~='cancel' and getTimestampMs()<armed then return end
+  dialog:destroy();callback(result)
+ end
+ local function button(title,result)
+  local b=U.Button:new(0,0,100,28,title,nil,function() finish(result) end)
+  b:initialise();b:instantiate();b:setImage(nil);b.iconTexture=nil;dialog:addChild(b);return b
+ end
+ dialog.no=button(labels.cancel,'cancel');dialog.yes=button(labels.accept,'accept')
+ U.skin(dialog.yes,'button','primary');D.decorate(dialog,playerNum,owner)
+ dialog:setX(left+math.max(0,(width-dialog:getWidth())/2));dialog:setY(top+math.max(0,(height-dialog:getHeight())/2))
  dialog.joypadButtonsY={};dialog.allJoypadButtons={};dialog.joypadButtons={}
  dialog:insertNewLineOfButtons(dialog.no,dialog.yes);dialog.joypadIndexY=1;dialog.joypadIndex=1
  dialog.onGainJoypadFocus=function(self,data)
   ISPanelJoypad.onGainJoypadFocus(self,data);self.joypadIndexY=1;self.joypadIndex=1;self:restoreJoypadFocus()
  end
- local click=dialog.yes.onclick;dialog.yes.onclick=function(...) if getTimestampMs()>=armed then click(...) end end
  local joy=dialog.onJoypadDown
  dialog.onJoypadDown=function(self,key,...)
+  if self.closed then return end
+  if key==Joypad.BButton then finish('cancel');return end
   if getTimestampMs()<armed then return end
-  if key==Joypad.BButton then self.no:forceClick();return end
   return joy(self,key,...)
  end
  if labels.extra then
   local b=U.Button:new(10,dialog:getHeight()-60,dialog:getWidth()-20,24,labels.extra,dialog,function(self)
-   if getTimestampMs()<armed then return end;self:destroy();callback('extra')
+   finish('extra')
   end)
   b:initialise();b:instantiate();dialog:addChild(b);dialog:insertNewLineOfButtons(b)
  end
  if dialog.b47Body then dialog:insertNewLineOfButtons(dialog.b47Body) end
+ dialog.isKeyConsumed=function() return true end
+ dialog.onKeyPress=function(_,key) if key==Keyboard.KEY_ESCAPE then finish('cancel') end end
+ dialog.onFocus=function(self) self:bringToTop() end;shield.onFocus=function() dialog:bringToTop() end
+ dialog.update=function(self)
+  if self.closed then return end
+  if not liveOwner() then self:destroy();return end
+  shield:setX(getPlayerScreenLeft(playerNum));shield:setY(getPlayerScreenTop(playerNum))
+  shield:setWidth(getPlayerScreenWidth(playerNum));shield:setHeight(getPlayerScreenHeight(playerNum));U.bounds(self,playerNum)
+ end
+ dialog:addToUIManager();dialog:setAlwaysOnTop(true);dialog:bringToTop();dialog:setWantKeyEvents(true)
  setJoypadFocus(playerNum,dialog);return dialog
 end
 return D

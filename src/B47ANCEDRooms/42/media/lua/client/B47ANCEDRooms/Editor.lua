@@ -111,12 +111,14 @@ function E:mouseTile()
  return {x=math.floor(x),y=math.floor(y),z=self.floor}
 end
 function E:onMouseDown(x,y)
+ if U.Dialog.active(self) then self.b47Dialog:bringToTop();return true end
  if x>=self.sidebar.x then return true end
  self.worldFocus=true;self.cursor=self:mouseTile();self.down=true;self.dragStart=self.cursor;self.lastPaint=nil
  if self.tool=='RoomPaint' or self.tool=='RoomErase' then self:point() end
  self:setCapture(true);return true
 end
 function E:onMouseMove(dx,dy)
+ if U.Dialog.active(self) then return true end
  self.cursor=self:mouseTile()
  if not self.down then return true end
  local key=G.key(self.cursor.x,self.cursor.y,self.cursor.z)
@@ -124,6 +126,7 @@ function E:onMouseMove(dx,dy)
  return true
 end
 function E:onMouseUp(x,y)
+ if U.Dialog.active(self) then return true end
  if self.down then
   self.cursor=self:mouseTile();self.down=false;self:setCapture(false)
   if self.tool~='RoomPaint' and self.tool~='RoomErase' then
@@ -134,15 +137,24 @@ function E:onMouseUp(x,y)
 end
 function E:onMouseUpOutside(x,y) return self:onMouseUp(x,y) end
 function E:onMouseDownOutside() return true end
-function E:onRightMouseDown() self.first=nil;self.down=false;self:setCapture(false);self.worldFocus=false;return true end
+function E:onRightMouseDown()
+ if U.Dialog.active(self) then return true end
+ self.first=nil;self.down=false;self:setCapture(false);self.worldFocus=false;return true
+end
 function E:isKeyConsumed() return true end
+function E:onFocus(x,y)
+ local dialog=U.Dialog.active(self)
+ if dialog then dialog:bringToTop() else ISPanelJoypad.onFocus(self,x,y) end
+end
 function E:onKeyPress(key)
+ if U.Dialog.active(self) then return end
  if key==Keyboard.KEY_ESCAPE then self:closeEditor()
  elseif self.nameEntry:isFocused() or self.secondName:isFocused() or self.accountEntry:isFocused() then return
  elseif isCtrlKeyDown() and key==Keyboard.KEY_Z then if isShiftKeyDown() then self.draft:redo() else self.draft:undo() end;changed(self)
  elseif isCtrlKeyDown() and key==Keyboard.KEY_Y then self.draft:redo();changed(self) end
 end
 function E:onJoypadDown(key,data)
+ if U.Dialog.active(self) then return end
  if key==Joypad.BButton then
   if self.worldFocus then self.first=nil;self.worldFocus=false;self:restoreJoypadFocus() else self:closeEditor() end;return
  end
@@ -151,6 +163,7 @@ function E:onJoypadDown(key,data)
 end
 for method,d in pairs({onJoypadDirUp={0,-1},onJoypadDirDown={0,1},onJoypadDirLeft={-1,0},onJoypadDirRight={1,0}}) do
  local delta=d;E[method]=function(self,data)
+  if U.Dialog.active(self) then return end
   if self.worldFocus then self.cursor.x=self.cursor.x+delta[1];self.cursor.y=self.cursor.y+delta[2]
   else ISPanelJoypad[method](self,data) end
  end
@@ -250,7 +263,7 @@ function E:closeEditor()
    if (result.status=='uncertain' or result.status=='timeout') and player and player.setHaloNote then player:setHaloNote(tr('RoomOutcomeUnknown')) end
   end)
  end
- self.closed=true;self.detection=nil;self.down=false;self.first=nil;self.submission=nil;self.saved={};self.edgeCache={}
+ self.closed=true;U.Dialog.close(self);self.detection=nil;self.down=false;self.first=nil;self.submission=nil;self.saved={};self.edgeCache={}
  self:setCapture(false);self:setWantKeyEvents(false);active[self.playerNum]=nil
  ISPanelJoypad.removeFromUIManager(self)
  if owner and not owner.removed then owner:setVisible(true) end
@@ -414,6 +427,7 @@ function E.open(num,owner,onClose)
  local editor=ISPanelJoypad.new(E,getPlayerScreenLeft(num),getPlayerScreenTop(num),getPlayerScreenWidth(num),getPlayerScreenHeight(num))
  editor.owner=owner;editor.playerNum=num;editor.player=player;editor.floor=math.floor(player:getZ());editor.cursor={x=math.floor(player:getX()),y=math.floor(player:getY()),z=editor.floor}
  editor.saved={};editor.autoCandidate=true;editor.onClose=onClose;editor:initialise();editor:instantiate();editor:addToUIManager();editor:setWantKeyEvents(true)
+ editor:bringToTop()
  editor:load();editor:refresh();if owner then owner:setVisible(false) end;setJoypadFocus(num,editor);active[num]=editor
  -- One candidate after server options arrive, never on every movement tile.
  return editor

@@ -3,9 +3,11 @@
 ## Overview
 Standalone room designation and server-owned room permissions for Project Zomboid Build 42.21.0.
 
-Version 0.1.0-dev.2.
+Version 0.1.0-dev.3.
 
 MP testing build - dedicated multiplayer NOT TESTED
+
+Unpublished development source: fixes confirmation ordering and consistent button presentation. Current Workshop distribution remains 0.1.0-dev.2; native popup acceptance is pending.
 
 Fixes room outlines drifting instead of scaling when zooming. Outlines now follow the player camera and zoom; native visual acceptance remains pending.
 

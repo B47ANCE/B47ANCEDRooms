@@ -3,11 +3,7 @@
   "canonical": "VERSION",
   "mirrors": [
     {
-      "path": "docs/WORKSHOP_OUTLINE_PUBLICATION.md",
-      "pattern": "^Project Version: (?P<version>\\S+)$"
-    },
-    {
-      "path": "docs/OUTLINE_ZOOM_FIX.md",
+      "path": "docs/UI_AUDIT.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
     },
     {
@@ -72,6 +68,14 @@
     {
       "reference": "dist/workshop-publish/0.1.0-dev.2-outline/previous-current and preservation-ledger.json",
       "reason": "Prior 0.1.0-dev.1 published artifacts preserved with exact hashes during explicitly authorized test-upload preparation. No historical package was relabeled or deleted."
+    },
+    {
+      "reference": "docs/WORKSHOP_OUTLINE_PUBLICATION.md and docs/OUTLINE_ZOOM_FIX.md",
+      "reason": "Evidence tied to published 0.1.0-dev.2 and its source-fix checkpoint; not current popup validation."
+    },
+    {
+      "reference": "dist/current/B47ANCEDRooms-0.1.0-dev.2.zip and adjacent provenance/checksum files",
+      "reason": "Preserved published 0.1.0-dev.2; not repackaged or moved during UI audit. The unchanged packaging glob must continue to reject stale current release artifacts."
     }
   ]
 }
