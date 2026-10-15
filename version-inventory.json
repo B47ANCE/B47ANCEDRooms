@@ -1,0 +1,40 @@
+{
+  "schema": 1,
+  "canonical": "VERSION",
+  "mirrors": [
+    {
+      "path": "README.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
+      "path": "src/B47ANCEDRooms/42/mod.info",
+      "pattern": "^modversion=(?P<version>\\S+)$"
+    }
+  ],
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "pattern": "^## \\[(?P<version>[^\\]]+)\\]$"
+  },
+  "packaging": {
+    "artifacts": [
+      {
+        "glob": "dist/current/*.zip",
+        "pattern": "B47ANCEDRooms-(?P<version>.+)\\.zip",
+        "zip_members": [
+          {
+            "member": "B47ANCEDRooms/42/mod.info",
+            "pattern": "^modversion=(?P<version>\\S+)$"
+          }
+        ]
+      }
+    ]
+  },
+  "other_versions": [
+    {
+      "category": "pz",
+      "reference": "src/B47ANCEDRooms/42/mod.info: versionMin",
+      "reason": "Native game compatibility, independent of project SemVer"
+    }
+  ],
+  "historical": []
+}
