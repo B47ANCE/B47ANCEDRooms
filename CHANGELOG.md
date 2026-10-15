@@ -1,11 +1,12 @@
 # Changelog
 
 ## [0.1.0-dev.3]
+- Explicitly authorized Workshop UI testing update: preserve the prior 0.1.0-dev.2 package/provenance with hashes, validate current packaging and update existing item 3820077442 without changing visibility. No gameplay changes or runtime verification are implied.
 - UI audit following the reported placement-cancel popup appearing behind the designation panel with mixed controls. Compatible PATCH-scope fix; next development checkpoint, with no gameplay/API/protocol/schema/configuration changes.
 - Construct Rooms confirmations from a plain native panel with exactly two Rooms-styled labeled buttons. Use the native top UI layer and a viewport input shield; do not inherit native modal controls or game-speed destruction effects.
 - Track one confirmation per owner; prevent editor focus/input from escaping the popup and remove popup/shield safely on cancel, accept, owner close or removal. Raise the editor once on opening; leave native menus/tooltips ordering intact.
 - [TESTED offline Windows/Lua 5.1] Actual confirmation module and full Rooms suite PASS. Native layering/mixed-control reproduction remains NOT TESTED; origin of the reported extra check/X controls is UNKNOWN without runtime evidence. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
-- No package, deployment or upload. Published 0.1.0-dev.2 evidence and artifacts are preserved; stale current artifact versions continue to block the packaging gate.
+- Historical source-fix checkpoint 8924b9f: no package, deployment or upload occurred during the UI audit; the prior current ZIP blocked packaging checks until subsequent explicit publish authorization.
 
 ## [0.1.0-dev.2]
 - Compatible visual bug fix (PATCH scope; next development checkpoint): UI outlines now use native player-specific zoom/camera/viewport projections instead of the world-render line helper. Saved/draft/split/overlap outlines, invalid marks and drag rectangles share the corrected path. No API, protocol, sandbox, save or authority changes.

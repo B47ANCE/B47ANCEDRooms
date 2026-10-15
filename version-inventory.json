@@ -74,8 +74,8 @@
       "reason": "Evidence tied to published 0.1.0-dev.2 and its source-fix checkpoint; not current popup validation."
     },
     {
-      "reference": "dist/current/B47ANCEDRooms-0.1.0-dev.2.zip and adjacent provenance/checksum files",
-      "reason": "Preserved published 0.1.0-dev.2; not repackaged or moved during UI audit. The unchanged packaging glob must continue to reject stale current release artifacts."
+      "reference": "dist/workshop-publish/0.1.0-dev.3-ui/previous-current and preservation-ledger.json",
+      "reason": "Published 0.1.0-dev.2 ZIP/provenance preserved with exact hashes during authorized .3 test-upload preparation. No historical package was relabeled or deleted."
     }
   ]
 }

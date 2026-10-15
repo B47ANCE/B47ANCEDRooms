@@ -81,11 +81,16 @@ $roomsPython = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dep
 git diff --check
 ```
 
-Version checks passed before edits. All current source mirrors and the changelog
+At source-fix checkpoint 8924b9f, version checks passed before edits. All current source mirrors and the changelog
 now match 0.1.0-dev.3. The full checker FAILS on the preserved 0.1.0-dev.2 ZIP
 filename and embedded mod.info in dist/current. The mismatch blocks packaging /
 G8; it is not a version PASS. Published reports/ZIP/provenance remain historical
-and unchanged. No new build, cleanup, deployment or Workshop upload is requested.
+and unchanged. No build, cleanup, deployment or Workshop upload occurred during
+the audit. The subsequent explicit publish request authorizes packaging and a
+Workshop testing update. The three prior current files are now preserved with
+exact hashes under dist/workshop-publish/0.1.0-dev.3-ui/previous-current, with a
+preservation ledger and no deletions. All current package checks must pass before
+upload; this does not change the runtime gates.
 
 [RUNTIME GATE] Open Designate Room with inventory/loot and another ordinary
 window visible. Edit a preview and request discard/save. Verify the confirmation
