@@ -73,8 +73,7 @@ def prepare(output, create_private=False):
     assert staged==source_files
     fields={'appid':'108600','publishedfileid':published_id,'contentfolder':str(stage/'Contents'),
             'previewfile':str(stage/'preview.png'),'visibility':'2' if create_private else '0',
-            'title':"B47ANCE'd Rooms",'description':description,'changenote':note,
-            'tags':'Build 42;Interface;QoL'}
+            'title':"B47ANCE'd Rooms",'description':description,'changenote':note}
     vdf='"workshopitem"\n{\n'+''.join('    "'+k+'" "'+escape(v)+'"\n' for k,v in fields.items())+'}\n'
     (output/'submission.vdf').write_bytes(vdf.encode('utf-8'))
     manifest={'version':version,'modId':MOD,'workshopId':None if create_private else published_id,'appId':108600,

@@ -2,7 +2,9 @@
 
 Project Version: 0.1.0-dev.1
 
-Standalone Lua-only room designation and delegated room-policy service for Project Zomboid Build 42.21.0. Mod ID **B47ANCEDRooms**. No Workshop ID assigned. Quartermaster is optional and is never required by Rooms.
+Standalone Lua-only room designation and delegated room-policy service for Project Zomboid Build 42.21.0. Mod ID **B47ANCEDRooms**. Steam-assigned Workshop ID **3820077442**; public testing distribution is being prepared. Quartermaster is optional and is never required by Rooms.
+
+For Clean Building, subscribe to [Rooms](https://steamcommunity.com/sharedfiles/filedetails/?id=3820077442) and [Quartermaster](https://steamcommunity.com/sharedfiles/filedetails/?id=3807217050), then enable both mods on the server and every client. Rooms exposes API 1 with cleaning capability 1; Quartermaster 0.8.0-dev.1 supplies the automatic workflow. Single-player Clean Building remains disabled; native/dedicated behavior is not verified.
 
 Designate rooms from the world context menu: use native or structural candidates, rectangles, paint/erase, explicit floors, undo/redo, names, merge/split and a confirmed preview. Native edits are non-destructive overrides; Restore Vanilla removes the override. Dragging never persists shared state.
 
@@ -12,4 +14,4 @@ Room rules apply only to supported integrations. They do not lock unrelated vani
 
 Authoritative source: `src/B47ANCEDRooms/42`. Registry: `ModData.B47ANCEDRooms.customRooms` schema 2. Legacy Quartermaster room data is read once into the independent root, preserving IDs and leaving the original data unchanged. See [API, permissions, migration and test gates](docs/ROOMS_API.md) and the [source-backed baseline](docs/EXTRACTION_AUDIT.md).
 
-Run `python tests/run_tests.py` and `python scripts/check_versions.py`. Tests require the host-only Lupa 2.6 Lua 5.1 module; it is never a mod dependency. Every check is offline unless explicitly labelled otherwise. Native client and dedicated G7 NOT TESTED/BLOCKED; stable G8 BLOCKED. Development artifacts are not runtime certification. No deployment, publication or game/server launch.
+Run `python tests/run_tests.py` and `python scripts/check_versions.py`. Tests require the host-only Lupa 2.6 Lua 5.1 module; it is never a mod dependency. Every check is offline unless explicitly labelled otherwise. Native client and dedicated G7 NOT TESTED/BLOCKED; stable G8 BLOCKED. Development artifacts are not runtime certification. The user authorized first Workshop publication; no local SP deployment, game/server launch or server changes are authorized. See canonical Workshop text in `docs/WORKSHOP_DESCRIPTION.md` and `docs/WORKSHOP_CHANGELOG.md`; generated staging and upload receipts stay under ignored `dist/`.

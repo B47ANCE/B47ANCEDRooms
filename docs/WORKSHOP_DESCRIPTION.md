@@ -15,7 +15,7 @@ MP testing build - dedicated multiplayer NOT TESTED
 - Data-only migration of legacy Quartermaster custom rooms into the independent Rooms registry, preserving original recovery data.
 
 ## Compatibility & Requirements
-Mod ID: B47ANCEDRooms. Lua-only runtime; no custom Java/JAR dependency. Requires Build 42.21.0 or a compatible later build; other builds have not been verified. No other mod is required by Rooms.
+Mod ID: B47ANCEDRooms. Workshop ID: 3820077442. Lua-only runtime; no custom Java/JAR dependency. Requires Build 42.21.0 or a compatible later build; other builds have not been verified. No other mod is required by Rooms.
 
 For Clean Building, subscribe to and enable both Rooms and B47ANCE'd Quartermaster on the server and every client. Quartermaster 0.8.0-dev.1 consumes Rooms API 1 with cleaning capability 1. Its right-click Clean Building command fetches eligible supplies, adds 10 mL bleach by default before filling the remaining bucket capacity with water, uses supported native blood/grime cleaning, then returns borrowed supplies when permitted.
 

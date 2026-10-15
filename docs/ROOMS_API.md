@@ -4,7 +4,7 @@ Project Version: 0.1.0-dev.1
 
 ## Scope and compatibility
 
-[VERIFIED source] Initial standalone extraction from team-owned Quartermaster 0.7.0-dev.1. Canonical version is root VERSION. Authoritative runtime root is `src/B47ANCEDRooms/42`; package root is `B47ANCEDRooms`. Mod ID is B47ANCEDRooms. No Workshop ID is assigned and Quartermaster is not a dependency. See EXTRACTION_AUDIT.md for the baseline inventory and provenance. No third-party implementation/assets are included; isolated B47RoomsUI modules derive from team-owned UI code.
+[VERIFIED source] Initial standalone extraction from team-owned Quartermaster 0.7.0-dev.1. Canonical version is root VERSION. Authoritative runtime root is `src/B47ANCEDRooms/42`; package root is `B47ANCEDRooms`. Mod ID is B47ANCEDRooms. Steam assigned Workshop ID 3820077442 for the authorized first test publication; Quartermaster is not a dependency. See EXTRACTION_AUDIT.md for the historical baseline inventory and provenance. No third-party implementation/assets are included; isolated B47RoomsUI modules derive from team-owned UI code.
 
 Room API version 1, network protocol 1 and registry schema 2 are independent of project SemVer. Callers check API readiness/version/capabilities. Unsupported or unknown permission results must fail closed for protected actions.
 
