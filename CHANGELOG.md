@@ -1,6 +1,7 @@
 # Changelog
 
 ## [0.1.0-dev.3]
+- [VERIFIED distribution] Existing Workshop item 3820077442 updated successfully; live canonical description, identity and public visibility verified. Fresh download and desktop subscription match all 84 runtime files. Steam restarted gracefully. Offline/version/package checks PASS; native UI and dedicated acceptance remain NOT TESTED. See docs/WORKSHOP_UI_PUBLICATION.md.
 - Explicitly authorized Workshop UI testing update: preserve the prior 0.1.0-dev.2 package/provenance with hashes, validate current packaging and update existing item 3820077442 without changing visibility. No gameplay changes or runtime verification are implied.
 - UI audit following the reported placement-cancel popup appearing behind the designation panel with mixed controls. Compatible PATCH-scope fix; next development checkpoint, with no gameplay/API/protocol/schema/configuration changes.
 - Construct Rooms confirmations from a plain native panel with exactly two Rooms-styled labeled buttons. Use the native top UI layer and a viewport input shield; do not inherit native modal controls or game-speed destruction effects.

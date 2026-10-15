@@ -92,6 +92,12 @@ exact hashes under dist/workshop-publish/0.1.0-dev.3-ui/previous-current, with a
 preservation ledger and no deletions. All current package checks must pass before
 upload; this does not change the runtime gates.
 
+For the subsequent authorized distribution, full offline/package/version checks
+passed, SteamCMD committed the update, and live metadata plus both tool-cache and
+desktop subscribed files matched the intended build. Steam restarted gracefully.
+See WORKSHOP_UI_PUBLICATION.md; distribution evidence does not resolve the native
+interaction gates below.
+
 [RUNTIME GATE] Open Designate Room with inventory/loot and another ordinary
 window visible. Edit a preview and request discard/save. Verify the confirmation
 stays above the designation panel, displays only the two labeled buttons and

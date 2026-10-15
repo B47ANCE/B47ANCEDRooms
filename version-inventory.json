@@ -3,6 +3,10 @@
   "canonical": "VERSION",
   "mirrors": [
     {
+      "path": "docs/WORKSHOP_UI_PUBLICATION.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
       "path": "docs/UI_AUDIT.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
     },
