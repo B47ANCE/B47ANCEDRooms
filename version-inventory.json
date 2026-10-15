@@ -31,7 +31,7 @@
         "zip_members": [
           {
             "member": "B47ANCEDRooms/42/mod.info",
-            "pattern": "^modversion=(?P<version>\\S+)$"
+            "pattern": "^modversion=(?P<version>[^\\r\\n]+)\\r?$"
           }
         ]
       }
