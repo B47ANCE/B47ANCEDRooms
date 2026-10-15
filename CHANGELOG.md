@@ -3,6 +3,7 @@
 ## [0.1.0-dev.2]
 - Compatible visual bug fix (PATCH scope; next development checkpoint): UI outlines now use native player-specific zoom/camera/viewport projections instead of the world-render line helper. Saved/draft/split/overlap outlines, invalid marks and drag rectangles share the corrected path. No API, protocol, sandbox, save or authority changes.
 - Explicitly authorized Workshop MP testing update: preserve prior package/provenance with hashes, reconcile current packaging, and publish to the existing item without changing visibility. Native visual acceptance and dedicated G7 remain NOT TESTED; stable G8 BLOCKED.
+- [VERIFIED distribution] SteamCMD committed the existing item update; live canonical description/identity/visibility and fresh 84-file download parity pass. Steam desktop restarted gracefully and its subscribed payload matched the same 84 runtime files. Full version/package checks PASS. Distribution is not native rendering or MP proof; see docs/WORKSHOP_OUTLINE_PUBLICATION.md.
 - [TESTED offline Windows/Lua 5.1] Projection regression fails on the previous renderer and passes with the fix; the complete Rooms suite passes. Native zoom/pan rendering NOT TESTED. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
 - Historical source-fix checkpoint f0d4857: source iteration only; the preserved old ZIP in dist/current blocked version checks before subsequent publish authorization. No packaging, deployment, game/server launch or Workshop upload occurred during that source fix.
 
