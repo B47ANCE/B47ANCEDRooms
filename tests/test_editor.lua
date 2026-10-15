@@ -21,7 +21,22 @@ f.player.isDead=function() return false end
 local cursorX,cursorY=0,0
 getMouseXScaled=function() return cursorX end;getMouseYScaled=function() return cursorY end
 ISCoordConversion={ToWorld=function(x,y) return x,y end}
-renderIsoLine=function() end
+-- Native-shaped UI projections: zoom and camera/viewport state can change
+-- between draws while the draft's cached WORLD edges remain identical.
+local camera={zoom=1,x=0,y=0,left=0,top=0,player=0}
+local drawn={}
+isoToScreenX=function(num,x,y,z)
+ assert(num==camera.player,'outline used another player camera')
+ return camera.left+((x-y)*64-camera.x)/camera.zoom
+end
+isoToScreenY=function(num,x,y,z)
+ assert(num==camera.player,'outline used another player camera')
+ return camera.top+((x+y)*32-z*192-camera.y)/camera.zoom
+end
+function ISPanelJoypad:drawLineAbsolute(texture,x1,y1,x2,y2,thickness,a,r,g,b)
+ drawn[#drawn+1]={x1-self:getAbsoluteX(),y1-self:getAbsoluteY(),x2-self:getAbsoluteX(),y2-self:getAbsoluteY(),thickness,a,r,g,b}
+end
+renderIsoLine=function() error('world-render line used from UI outline') end
 getCell().createNewGridSquare=function() error('room editor created world geometry') end
 for _,sq in pairs(f.squares) do
  sq.isWallTo=function() return true end;sq.isDoorTo=function() return false end;sq.isWindowTo=function() return false end;sq.isBlockedTo=function() return false end
@@ -31,6 +46,36 @@ U.Dialog.confirm=function(_,text,labels,callback) confirmation={text=text,callba
 local p=ISPanelJoypad:new(0,0,500,500);p.playerNum=0;p.selectedItems={};local selections=p.selectedItems;selections.keep=true
 local editor=E.open(0,p);assert(editor and not p:isVisible())
 assert(editor.sidebar.width<=width and editor.nameEntry and not editor.secondName:isVisible())
+-- Cover saved/added/removed/overlapping/split edges, invalid marks and the
+-- drag rectangle, including an elevated floor and fractional invalid marks.
+editor.detection=nil;editor.floor=2
+editor.draft:set(assert(Q.Geometry.normalize({{2,1,1,2}})))
+editor.draft.original=assert(Q.Geometry.normalize({{2,1,0,1}}))
+editor.draft.second=assert(Q.Geometry.normalize({{2,2,2,2}}))
+editor.saved={other={rows={{2,1,2,3}}}}
+editor.invalidTiles={{x=2,y=1,z=2},{x=2,y=1,z=1}}
+editor.first={x=1,y=1,z=2};editor.cursor={x=2,y=2,z=2}
+editor:prerender()
+local baseline=drawn;assert(#baseline>10,'outline layers missing')
+local cached=editor.edgeCache;local geometry=editor.draft.geometry
+for _,state in ipairs({{.5,13,-27,0,0,0},{2,-43,31,640,0,1},{1.35,93,64,640,360,3}}) do
+ camera.zoom,camera.x,camera.y,camera.left,camera.top,camera.player=unpack(state)
+ editor.playerNum=camera.player;editor:setX(camera.left);editor:setY(camera.top);drawn={}
+ editor:prerender()
+ assert(editor.edgeCache==cached and editor.draft.geometry==geometry,'zoom rebuilt or changed room geometry')
+ assert(#drawn==#baseline,'zoom changed outline count')
+ for i,line in ipairs(drawn) do
+  local original=baseline[i]
+  for k=1,4 do
+   local offset=k%2==1 and camera.x or camera.y
+   assert(math.abs(line[k]-(original[k]-offset)/camera.zoom)<.00001,'outline drifted or failed to scale')
+  end
+  for k=5,9 do assert(line[k]==original[k],'zoom changed UI thickness/color') end
+ end
+end
+assert(not ModData.getOrCreate('B47ANCEDRooms').customRooms,'rendering persisted geometry')
+camera={zoom=1,x=0,y=0,left=0,top=0,player=0};editor.playerNum=0;editor:setX(0);editor:setY(0)
+editor.floor=0;editor.saved={};editor.invalidTiles=nil;editor:load()
 editor:prerender();editor.sidebar:prerender()
 editor:onMouseDown(100,100);assert(editor.capture)
 cursorX=1;editor:onMouseMove(1,0);editor:onMouseUp(100,100)
@@ -60,4 +105,4 @@ assert(late.closed and not late.capture and p:isVisible())
 for _,callback in ipairs(queued) do callback({status='ok',rooms={},revision=100}) end
 assert(late.closed and not late.draft,'late callback resurrected removed editor')
 Q.Client.request=request
-print('PASS OFFLINE room editor: mouse/controller rectangles, bounded preview history, explicit save, cancellation/late replies, capture/focus cleanup, themed controls and preserved sorting selections')
+print('PASS OFFLINE room editor: zoom/camera/viewport outline projection, mouse/controller rectangles, bounded preview history, explicit save, cancellation/late replies, capture/focus cleanup, themed controls and preserved sorting selections')

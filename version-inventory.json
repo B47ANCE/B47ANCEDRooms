@@ -3,7 +3,7 @@
   "canonical": "VERSION",
   "mirrors": [
     {
-      "path": "docs/WORKSHOP_PUBLICATION.md",
+      "path": "docs/OUTLINE_ZOOM_FIX.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
     },
     {
@@ -60,5 +60,14 @@
       "reason": "Native game compatibility, independent of project SemVer"
     }
   ],
-  "historical": []
+  "historical": [
+    {
+      "reference": "docs/WORKSHOP_PUBLICATION.md",
+      "reason": "Immutable 0.1.0-dev.1 publication/distribution evidence, not proof of current source or runtime correctness."
+    },
+    {
+      "reference": "dist/current/B47ANCEDRooms-0.1.0-dev.1.zip and adjacent provenance/hash records",
+      "reason": "Preserved prior published artifacts; no cleanup or packaging requested. The unchanged artifact glob continues to flag these as stale for current release checks."
+    }
+  ]
 }

@@ -1,11 +1,11 @@
-# Version 0.1.0-dev.1
+# Version 0.1.0-dev.2
 
 MP testing build - dedicated multiplayer NOT TESTED
 
-First Workshop testing distribution of the standalone Rooms project. Includes room designation, preview editing, native overrides/restore, delegated ownership and per-action policies, server-owned registry/network/API and recovery-preserving legacy room import.
+Development source only; not packaged, deployed or uploaded.
 
-Adds the cleaning consumer API and server sandbox settings required by Quartermaster 0.8.0-dev.1 Clean Building. Subscribe to and enable both mods on the server and every client. Rooms has no Quartermaster dependency; Quartermaster provides the automatic supply fetching and native cleaning actions.
+Fix room outlines drifting and failing to scale when zooming. Saved outlines, draft changes, overlap/split previews, invalid-tile marks and drag rectangles now use the native player-specific UI projections on every draw. Room geometry, permissions, persistence and the server API are unchanged.
 
-Default preparation is 10 mL bleach first, then water to fill the remaining bucket capacity. Single-player Clean Building remains disabled. Conservative cross-level footprint validation may skip many or all targets; supported finite pure-water sources and equipment are required. Cancellation may retain supplies; jobs do not resume on reconnect/restart.
+Offline Lua 5.1 regression checks cover changing zoom, camera offsets, elevated floors and player viewport origins with cached world edges. Actual game rendering remains NOT TESTED.
 
-Offline source and paired consumer checks pass. Native UI, real save/load, client/server synchronization and dedicated multiplayer acceptance remain NOT TESTED. G7 and stable G8 BLOCKED. Back up saves; no game/server launch, local SP deployment or server changes are included in publication.
+Dedicated G7 and stable G8 remain BLOCKED. Prior published 0.1.0-dev.1 evidence and artifacts are preserved. No new distribution evidence or runtime acceptance is claimed.

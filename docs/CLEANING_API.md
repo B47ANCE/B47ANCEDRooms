@@ -1,6 +1,6 @@
 # Cleaning consumer API
 
-Project Version: 0.1.0-dev.1
+Project Version: 0.1.0-dev.2
 
 This is the Rooms side of the authorized offline Auto Clean integration. Rooms
 owns physical building membership and cleaning permission. It never searches

@@ -368,6 +368,13 @@ function E:update()
  local w,h=getPlayerScreenWidth(self.playerNum),getPlayerScreenHeight(self.playerNum)
  if w~=self.width or h~=self.height then self:setWidth(w);self:setHeight(h);self.sidebar:setX(math.max(0,w-360));self.sidebar:setHeight(h) end
 end
+function E:drawWorldLine(x1,y1,z1,x2,y2,z2,thickness,r,g,b,a)
+ -- This panel draws in UI space. renderIsoLine targets the world buffer;
+ -- native UI projections include this player's live zoom and viewport origin.
+ local num=self.playerNum
+ self:drawLineAbsolute(nil,isoToScreenX(num,x1,y1,z1),isoToScreenY(num,x1,y1,z1),
+  isoToScreenX(num,x2,y2,z2),isoToScreenY(num,x2,y2,z2),thickness,a,r,g,b)
+end
 function E:prerender()
  if not self.draft then return end
  if self.edgeSource~=self.draft.geometry or self.edgeFloor~=self.floor then
@@ -390,16 +397,16 @@ function E:prerender()
  end
  local budget=8192
  for _,layer in ipairs(self.edgeCache) do local c=layer.color
-  for _,line in ipairs(layer.edges) do if budget<=0 then self:message('RoomOverlayLimit');break end;renderIsoLine(line[1],line[2],line[3],line[4],line[5],line[6],1,c[1],c[2],c[3],c[4]);budget=budget-1 end
+  for _,line in ipairs(layer.edges) do if budget<=0 then self:message('RoomOverlayLimit');break end;self:drawWorldLine(line[1],line[2],line[3],line[4],line[5],line[6],1,c[1],c[2],c[3],c[4]);budget=budget-1 end
  end
  for _,tile in ipairs(self.invalidTiles or {}) do if tile.z==self.floor then
-  renderIsoLine(tile.x+.25,tile.y+.25,tile.z,tile.x+.75,tile.y+.75,tile.z,1,1,.2,.2,1)
-  renderIsoLine(tile.x+.75,tile.y+.25,tile.z,tile.x+.25,tile.y+.75,tile.z,1,1,.2,.2,1)
+  self:drawWorldLine(tile.x+.25,tile.y+.25,tile.z,tile.x+.75,tile.y+.75,tile.z,1,1,.2,.2,1)
+  self:drawWorldLine(tile.x+.75,tile.y+.25,tile.z,tile.x+.25,tile.y+.75,tile.z,1,1,.2,.2,1)
  end end
  local p=self.cursor;local c=allowed(self.player,getCell():getGridSquare(p.x,p.y,p.z)) and {1,.8,.2} or {1,.2,.2}
  local a=self.first or self.down and self.dragStart or p
  local x1,y1=math.min(a.x,p.x),math.min(a.y,p.y);local x2,y2=math.max(a.x,p.x)+1,math.max(a.y,p.y)+1
- for _,line in ipairs({{x1,y1,x2,y1},{x2,y1,x2,y2},{x2,y2,x1,y2},{x1,y2,x1,y1}}) do renderIsoLine(line[1],line[2],p.z,line[3],line[4],p.z,2,c[1],c[2],c[3],1) end
+ for _,line in ipairs({{x1,y1,x2,y1},{x2,y1,x2,y2},{x2,y2,x1,y2},{x1,y2,x1,y1}}) do self:drawWorldLine(line[1],line[2],p.z,line[3],line[4],p.z,2,c[1],c[2],c[3],1) end
 end
 function E.open(num,owner,onClose)
  if active[num] then active[num]:closeEditor() end

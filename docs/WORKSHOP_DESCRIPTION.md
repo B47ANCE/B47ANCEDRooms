@@ -3,9 +3,11 @@
 ## Overview
 Standalone room designation and server-owned room permissions for Project Zomboid Build 42.21.0.
 
-Version 0.1.0-dev.1.
+Version 0.1.0-dev.2.
 
 MP testing build - dedicated multiplayer NOT TESTED
+
+Development source: fixes room-outline projection while zooming. This version has not been uploaded; the last published build is 0.1.0-dev.1.
 
 ## Features
 - Designate rooms from the world context menu using native/structural candidates, rectangles, paint/erase and explicit floors. Preview, name, undo/redo, merge/split, then confirm changes.
