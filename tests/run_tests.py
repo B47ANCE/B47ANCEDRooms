@@ -15,7 +15,7 @@ for p in SOURCE.rglob('*.lua'):
     runtime().execute('assert(loadstring(...))',code)
     assert not re.search(r"require\s*['\"]B47ANCEDQuartermaster",code),p
     if '/shared/' in p.as_posix():assert not re.search(r':(?:AddItem|addItem|Remove|removeItemWithID)\s*\(',code),p
-for name in ['test_registry.lua','test_detection.lua','test_permissions.lua','test_migration.lua','test_native_rooms.lua','test_editor.lua','test_network.lua','test_cleaning.lua']:
+for name in ['test_registry.lua','test_detection.lua','test_permissions.lua','test_migration.lua','test_native_rooms.lua','test_editor.lua','test_network.lua','test_cleaning.lua','test_designations.lua']:
     path=ROOT/'tests'/name
     runtime().execute(path.read_text(encoding='utf-8'))
 english=json.loads((SOURCE/'42/media/lua/shared/Translate/EN/UI.json').read_text(encoding='utf-8'))

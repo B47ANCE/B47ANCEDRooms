@@ -15,6 +15,13 @@ local snapshot=API.geometry(f.player,id,0)
 for _=1,20 do if snapshot.status~='waiting' then break end;f.tick();snapshot=API.geometry(f.player,id,0) end
 assert(snapshot.status=='ok' and B47ANCEDRooms.Geometry.normalize(snapshot.room.rows).count==7)
 assert(not API.containsTile(f.player,id,0,1,1,0),'native bounds treated a hole as room geometry')
+f.network(false,true)
+local interact=SafeHouse.isSafehouseAllowInteract
+SafeHouse.isSafehouseAllowInteract=function(square) return square:getX()~=3 end
+assert(API.canAccess(f.player,id,'configureRoom').state=='deny','one allowed corner authorized the rest of a restricted native room')
+SafeHouse.isSafehouseAllowInteract=function(square) return not (square:getX()==1 and square:getY()==1) end
+assert(API.canAccess(f.player,id,'configureRoom').state=='allow','bounding-box hole was treated as room membership')
+SafeHouse.isSafehouseAllowInteract=interact;f.network(false,false)
 local sequence=0
 local function write(args)
  local lease=API.beginEdit(f.player);sequence=sequence+1;args.revision=lease.revision;args.editKey=lease.editKey;args.nonce='native:'..sequence;args.confirm=true

@@ -6,6 +6,7 @@ require 'B47RoomsUI/Dialog'
 local Draft=require 'B47ANCEDRooms/Draft'
 local Detect=require 'B47ANCEDRooms/Detection'
 local G=require 'B47ANCEDRooms/Geometry'
+local Types=require 'B47ANCEDRooms/RoomTypes'
 local Q,U=B47ANCEDRooms,B47RoomsUI
 local E=ISPanelJoypad:derive('B47RoomsEditor');Q.Editor=E
 local active={};local sequence=0
@@ -197,6 +198,21 @@ function E:permissions()
  end
  U.menu(menu);if self.joyfocus then setJoypadFocus(self.playerNum,menu) end
 end
+function E:designation()
+ local room=self.record;if not room or not room.id then self:message('RoomSelectSaved');return end
+ if #self.draft.history>0 or self.nameEntry:getInternalText()~=self.startName then self:message('RoomSaveBeforePolicy');return end
+ local menu=ISContextMenu.get(self.playerNum,getMouseX(),getMouseY())
+ local ids={'unassigned'};for _,id in ipairs(Types.ids) do ids[#ids+1]=id end
+ for _,id in ipairs(ids) do local roomType=id
+  local option=menu:addOption(tr('RoomType_'..id));local sub=ISContextMenu:getNew(menu);menu:addSubMenu(option,sub)
+  for _,role in ipairs(Types.roles) do local designation=role
+   if roomType~=(room.roomType or 'unassigned') or role~=(room.designation or 'unassigned') then
+    sub:addOption(tr('RoomRole_'..role),self,function() self:submit('designation',{roomType=roomType,designation=designation}) end)
+   end
+  end
+ end
+ U.menu(menu);if self.joyfocus then setJoypadFocus(self.playerNum,menu) end
+end
 function E:submit(action,extra)
  if self.submission or self.revision==nil then return end
  local draft=self.draft;local record=self.record;local count=draft.geometry.count
@@ -288,6 +304,7 @@ function E:createChildren()
  row({'RoomRedetect',function() self:detect(false) end},{'RoomUseNative',function() self:detect(true) end})
  row({'RoomUndo',function() self.draft:undo();changed(self) end},{'RoomRedo',function() self.draft:redo();changed(self) end})
  row({'RoomPermissions',E.permissions},{'RoomRestore',function() if self.record and self.record.id and self.record.nativeId then self:submit('restore') end end})
+ row({'RoomDesignation',E.designation})
  row({'RoomClear',function() self.draft:set(assert(G.normalize({})));changed(self) end},{'RoomCombine',E.combine})
  row({'RoomDuplicate',function() if self.record and self.draft.action=='save' then local rows=self.draft.geometry.rows;local title=self.nameEntry:getInternalText();self:load({name=title,rows=rows});self.record=nil end end},
   {'RoomDelete',function() if self.record then self:submit('delete') end end})
@@ -332,6 +349,7 @@ function E:update()
  self.buttons.RoomDisconnectedToggle:setTitle(tr(self.disconnected and 'RoomDisconnectedOn' or 'RoomDisconnectedOff'))
  self.buttons.RoomRestore:setEnable(self.record and self.record.id and self.record.nativeId~=nil or false)
  self.buttons.RoomPermissions:setEnable(self.record and self.record.id~=nil or false)
+ self.buttons.RoomDesignation:setEnable(self.record and self.record.id~=nil or false)
  if self.focusAction~=self.draft.action then
   self.focusAction=self.draft.action;self.secondName:setVisible(self.draft.action=='split')
   U.Focus.visibleRows(self,function(panel)

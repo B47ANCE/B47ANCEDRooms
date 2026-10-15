@@ -10,6 +10,11 @@ local function remember(def,square)
  cache[id]={id=id,def=def,square=square,name=def:getName(),z=def:getZ(),x=def:getX(),y=def:getY(),revision=0,native=true}
  return cache[id]
 end
+function N.at(square)
+ local def=square and square.getRoomDef and square:getRoomDef()
+ local r=def and remember(def,square)
+ if r then return {id=r.id,name=r.name,label=r.name,revision=0,native=true,x=r.x,y=r.y,z=r.z} end
+end
 function N.list(player)
  if isClient() or not player then return {} end
  local square=player:getCurrentSquare();if not square then return {} end
@@ -38,8 +43,13 @@ function N.contains(player,id,x,y,z)
  local r=N.resolve(player,id);local sq=r and getCell():getGridSquare(x,y,z)
  return sq and sq:getRoomDef()==r.def or false
 end
-function N.snapshot(player,id,limit)
- local r=N.resolve(player,id);if not r then return {status='RoomUnavailable'} end
+function N.snapshot(player,id,limit,authorizedSquare)
+ local r
+ if authorizedSquare then
+  local def=authorizedSquare:getRoomDef();local candidate=def and remember(def,authorizedSquare)
+  if candidate and candidate.id==id then r=candidate end
+ else r=N.resolve(player,id) end
+ if not r then return {status='RoomUnavailable'} end
  local j=reads[player]
  if j and j.id~=id and not j.job.done then return {status='busy'} end
  if not j or j.id~=id then

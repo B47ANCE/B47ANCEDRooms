@@ -1,4 +1,4 @@
-# Version 0.1.0-dev.1
+# Version 0.2.0-dev.1
 
 MP testing build - dedicated multiplayer NOT TESTED
 

@@ -1,6 +1,8 @@
 # B47ANCE'd Rooms
 
-Project Version: 0.1.0-dev.1
+Current 0.2.0-dev.1 development adds room type/storage-role metadata and server-only storage-scope consumer APIs. See [current designations/API](docs/ROOM_DESIGNATIONS.md). No inventory engine or Quartermaster dependency. Native/dedicated NOT TESTED; no deployment/publication.
+
+Project Version: 0.2.0-dev.1
 
 Standalone Lua-only room designation and delegated room-policy service for Project Zomboid Build 42.21.0. Mod ID **B47ANCEDRooms**. Steam-assigned Workshop ID **3820077442**; public testing distribution is being prepared. Quartermaster is optional and is never required by Rooms.
 
