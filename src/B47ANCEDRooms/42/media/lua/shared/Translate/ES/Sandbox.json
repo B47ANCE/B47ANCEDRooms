@@ -1,0 +1,13 @@
+{
+  "Sandbox_B47ANCEDRooms_Enabled": "Enable Custom Rooms",
+  "Sandbox_B47ANCEDRooms_Enabled_tooltip": "Enable room designations and editing. Existing private storage policies remain fail-closed if unavailable.",
+  "Sandbox_B47ANCEDRooms_RoomTileLimit": "Room Tile Limit",
+  "Sandbox_B47ANCEDRooms_RoomTileLimit_tooltip": "Maximum tiles in one saved logical room. Existing larger rooms remain readable; edits must fit the current limit.",
+  "Sandbox_B47ANCEDRooms_RoomEditRange": "Room Editing Range",
+  "Sandbox_B47ANCEDRooms_RoomEditRange_tooltip": "Maximum horizontal tile distance for editing room geometry. Native access and per-floor membership still apply.",
+  "Sandbox_B47ANCEDRooms_RoomDoorways": "Doorless Doorway Boundaries",
+  "Sandbox_B47ANCEDRooms_RoomDoorways_tooltip": "Treat verified doorless frames as structural detection boundaries. Actual doors remain boundaries even when open.",
+  "Sandbox_B47ANCEDRooms_DelegatedRooms": "Delegated Room Policies",
+  "Sandbox_B47ANCEDRooms_DelegatedRooms_tooltip": "Allow delegated private room storage policies for integrated mods. This does not secure unrelated vanilla actions. Existing private policies fail closed when disabled.",
+  "Sandbox_B47ANCEDRooms": "B47ANCE'd Rooms"
+}

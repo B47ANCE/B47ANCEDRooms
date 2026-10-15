@@ -1,0 +1,44 @@
+VERSION = 1,
+option B47ANCEDRooms.Enabled
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_Enabled,
+}
+
+option B47ANCEDRooms.RoomTileLimit
+{
+    type = integer,
+    min = 64,
+    max = 4096,
+    default = 1024,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_RoomTileLimit,
+}
+
+option B47ANCEDRooms.RoomEditRange
+{
+    type = integer,
+    min = 5,
+    max = 128,
+    default = 30,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_RoomEditRange,
+}
+
+option B47ANCEDRooms.RoomDoorways
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_RoomDoorways,
+}
+
+option B47ANCEDRooms.DelegatedRooms
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_DelegatedRooms,
+}

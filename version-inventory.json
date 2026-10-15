@@ -9,6 +9,14 @@
     {
       "path": "src/B47ANCEDRooms/42/mod.info",
       "pattern": "^modversion=(?P<version>\\S+)$"
+    },
+    {
+      "path": "docs/ROOMS_API.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
+      "path": "src/B47ANCEDRooms/42/media/lua/shared/B47ANCEDRooms/Identity.lua",
+      "pattern": "version='(?P<version>[0-9][^']*)'"
     }
   ],
   "changelog": {

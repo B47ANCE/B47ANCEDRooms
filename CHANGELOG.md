@@ -1,4 +1,7 @@
 # Changelog
 
 ## [0.1.0-dev.1]
-- Initial public project metadata; standalone extraction and offline validation pending on a feature branch. No runtime acceptance or distribution.
+- Initial standalone Lua-only extraction: bounded geometry/detection, independent editor/registry/network/API, native overrides/restore and delegated ownership/action policies.
+- Separate schema-2 room persistence with data-only Quartermaster schema-1 import; preserve room IDs, revisions, creators and original recovery section.
+- Server-validated safehouse hierarchy, private overlap rejection, boundary approval, action grants and stale-parent fail-closed checks. No parent/admin automatic gameplay bypass.
+- Standalone/offline regressions cover edits, permissions, migration, native aliases, UI lifecycle and headless transport. Native UI/persistence/dedicated G7 NOT TESTED; stable G8 BLOCKED. Development artifacts only; no deployment/publication.
