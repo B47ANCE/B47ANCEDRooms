@@ -1,11 +1,9 @@
-# Version 0.2.0-dev.1
+# Version 0.2.0-dev.2
 
 MP testing build - dedicated multiplayer NOT TESTED
 
-Use player-designated rooms only. Keep vanilla building detection; remove vanilla room definitions, native outline/import and Restore Vanilla. Start designation with an empty draft and list saved rooms in the current building. Detect Walls remains an explicit preview tool.
+Keep Designate Room open after a successful server-confirmed save. Refresh the saved-room list and start a blank draft on the same floor, ready for the next room. Close the window yourself when finished.
 
-Existing saved overrides retain their geometry, UUIDs, ownership and permissions as ordinary designations. Native aliases are inert recovery metadata; old native-ID consumers must switch to designated UUIDs. Retired restore requests cannot delete rooms.
+Immediate and polled save acknowledgements use the same flow. Rejected saves preserve the draft; stale replies cannot overwrite the next room's refreshed list, lease or overlays. Room geometry, permissions, server authority and save/API formats are unchanged.
 
-Cleaning scopes now cover designated tiles within the selected physical building. Undesignated areas are excluded; an empty building requires room designation. Safehouse and server authority checks remain.
-
-Offline source tests pass. Actual native UI/save-load, paired consumer integration and dedicated multiplayer remain NOT TESTED. G7 and stable G8 BLOCKED. This explicitly authorized update is distributed for testing on the existing Rooms Workshop item. Upload/download success does not prove in-game behavior.
+Offline source tests pass, including consecutive distinct room saves in one window. Actual UI and dedicated multiplayer remain NOT TESTED; G7 and stable G8 BLOCKED. Prepared development notes only: this UI request does not upload anything. The live Workshop item remains 0.2.0-dev.1.

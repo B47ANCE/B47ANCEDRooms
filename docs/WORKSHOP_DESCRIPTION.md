@@ -3,9 +3,11 @@
 ## Overview
 Standalone room designation and server-owned room permissions for Project Zomboid Build 42.21.0.
 
-Version 0.2.0-dev.1.
+Version 0.2.0-dev.2.
 
 MP testing build - dedicated multiplayer NOT TESTED
+
+Designate Room stays open after a successful save, refreshes the saved rooms and starts a blank draft on the same floor so you can designate the next room immediately.
 
 Development 0.2 uses only player-designated rooms within vanilla-detected buildings. Vanilla room definitions, Native Outline and Restore Vanilla are removed; existing overrides keep their saved geometry and permissions as ordinary designations. Building cleaning covers designated tiles only.
 

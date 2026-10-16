@@ -1,6 +1,6 @@
 # Cleaning consumer API
 
-Project Version: 0.2.0-dev.1
+Project Version: 0.2.0-dev.2
 
 This is the Rooms side of the authorized offline Auto Clean integration. Rooms
 uses vanilla physical building detection plus player-designated room geometry and owns cleaning permission. Vanilla room definitions are never read. It never searches
@@ -97,16 +97,17 @@ native interact denial, validated defaults/bounds, settings revocation,
 disconnect/expiry and client denial. Syntax, case, inventory, localization,
 registry/network/migration and existing editor tests remain included.
 
-`python scripts/check_versions.py --root . --release` passes after the explicit
-publish request authorized packaging. The prior .3 package/provenance/checksum
-are preserved with exact hashes under the new release folder, without relabeling.
-See WORKSHOP_DESIGNATED_PUBLICATION.md for package and distribution evidence.
+Cleaning geometry/permission behavior is unchanged by the 0.2.0-dev.2 editor UI
+change; the full current offline suite, including cleaning, passes. Current source
+version mirrors match; artifact checks are blocked by the unchanged published .1
+ZIP. WORKSHOP_DESIGNATED_PUBLICATION.md retains historical .1 packaging and
+distribution evidence; it is not current runtime proof.
 Quartermaster source/integration is outside this Rooms-only iteration; existing
 consumers must accept the designated-only scope and handle the no-rooms status.
 No current cross-repository or native integration result is claimed.
 
 Native UI, fluid/inventory transactions, synchronization, real save/load and
 dedicated behavior are **NOT TESTED**. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
-The source checkpoint did not deploy or publish. A subsequent explicit publish
-request authorizes the labelled Workshop test update; no local SP deployment or
-game/server launch is included. Distribution does not establish runtime behavior.
+The .1 checkpoint was explicitly published for testing. The current .2 UI request
+does not authorize packaging, deployment or upload. No game/server launch is
+included. Historical distribution does not establish current runtime behavior.

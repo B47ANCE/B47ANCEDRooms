@@ -50,7 +50,10 @@ function E:select(meta)
  else perform() end
 end
 function E:refresh()
+ self.refreshGeneration=(self.refreshGeneration or 0)+1;local generation=self.refreshGeneration
+ self.fetchPending=false;self.fetch={}
  self:request('roomList',{},function(r)
+  if generation~=self.refreshGeneration then return end
   if r.status~='ok' then self:message(r.status);return end
   self.revision=r.revision;self.editKey=r.editKey;self.options=r.options;self.metadata=r.rooms;self.list:clear()
   self.saved={};self.edgeSource=nil
@@ -60,6 +63,17 @@ function E:refresh()
   self.fetch={};for _,m in ipairs(r.rooms) do if #self.fetch<8 then self.fetch[#self.fetch+1]=m end end
   self:message(self.conflict or 'RoomPreviewOnly')
  end)
+end
+function E:saveSucceeded(submission)
+ if self.submission~=submission then return end
+ self.submission=nil
+ if Q.onRoomsChanged then Q.onRoomsChanged() end
+ if self.closed then return end
+ -- A completed write starts the next designation, without ending this editor
+ -- session or restoring the hidden parent. Wait for a fresh lease before saving.
+ self.revision=nil;self.editKey=nil;self.down=false;self.dragStart=nil;self.lastPaint=nil
+ self:setCapture(false);self.disconnected=false
+ self:load();self:refresh()
 end
 function E:detect()
  if self.draft and self.draft.action~='save' then self:message('RoomFinishCompound');return end
@@ -232,7 +246,7 @@ function E:submit(action,extra)
    self:request('roomChange',args,function(r)
     if self.submission~=submission then return end;submission.changePending=false
     if r.status=='uncertain' or r.status=='timeout' then self:message('RoomOutcomeUnknown');return end
-    if r.status=='ok' then self.submission=nil;if Q.onRoomsChanged then Q.onRoomsChanged() end;self:closeEditor();return end
+    if r.status=='ok' then self:saveSucceeded(submission);return end
     if r.status~='pending' then self.submission=nil;self:message(r.status);if r.status=='conflict' or r.status=='expired' then self.conflict='RoomEditConflict';self:refresh() end end
    end)
   end)
@@ -360,8 +374,11 @@ function E:update()
  end
  if self.closed then return end
  if self.fetch and #self.fetch>0 and getTimestampMs()>=(self.nextFetch or 0) and not self.fetchPending then
-  local meta=table.remove(self.fetch,1);self.fetchPending=true;self.nextFetch=getTimestampMs()+500
-  self:request('roomGet',{id=meta.id,roomRevision=meta.revision},function(r) self.fetchPending=false;if r.status=='ok' then self.saved[meta.id]=r.room;self.edgeSource=nil end end)
+  local meta=table.remove(self.fetch,1);local generation=self.refreshGeneration;self.fetchPending=true;self.nextFetch=getTimestampMs()+500
+  self:request('roomGet',{id=meta.id,roomRevision=meta.revision},function(r)
+   if generation~=self.refreshGeneration then return end
+   self.fetchPending=false;if r.status=='ok' then self.saved[meta.id]=r.room;self.edgeSource=nil end
+  end)
  end
  local s=self.submission
  if s and not s.changePending and not s.pending and getTimestampMs()>=s.nextAt then
@@ -370,8 +387,8 @@ function E:update()
   self:request('roomPoll',{nonce=s.args.nonce},function(r)
    s.pending=false;if self.submission~=s then return end
    if r.status=='pending' or r.status=='rateLimited' or r.status=='expired' or r.status=='uncertain' or r.status=='timeout' then return end
+   if r.status=='ok' then self:saveSucceeded(s);return end
    self.submission=nil;self:message(r.status)
-   if r.status=='ok' then if Q.onRoomsChanged then Q.onRoomsChanged() end;self:closeEditor() end
   end)
  end
  if self.closed then return end
