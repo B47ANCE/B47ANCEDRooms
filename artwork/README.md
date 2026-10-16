@@ -1,9 +1,11 @@
 # Rooms project thumbnail
 
-Selected by the user on October 15, 2026. This authoring change sets the project
-thumbnail and input for the next explicitly requested Workshop upload. It does
-not publish, package or deploy anything. Runtime source and canonical mod version
-are unchanged. Prior publication evidence remains tied to its original preview.
+Selected by the user on October 15, 2026. The authoring checkpoint 79398b2 set the
+project thumbnail without publishing, packaging or deploying. The subsequent
+explicit publish request selects this export for an update to the existing item.
+Runtime source, canonical mod version and runtime package are unchanged. Prior
+publication evidence remains tied to its original preview; old provenance is
+copied with exact hashes before the thumbnail update.
 
 | File | Role | PNG dimensions | Bytes | SHA-256 |
 |---|---|---|---:|---|
@@ -28,7 +30,8 @@ selection independently of those roles.
 with Pillow/hashlib. Original equality and prior-fallback equality were checked
 before/after selection. The export was visually inspected for complete text and
 room composition. `python scripts/check_versions.py` passes for development;
-the newest Unreleased changelog entry intentionally records this pending artwork
-change. Full runtime regression tests were not repeated for this asset-only
-update. No native-game or live Workshop display verification is claimed.
+the artwork authoring checkpoint used an Unreleased changelog entry. The explicit
+publish preparation folds that note into the current runtime version as a
+thumbnail-only update. Runtime tests were not repeated during authoring; publishing
+reruns the applicable preflight without claiming native UI/gameplay acceptance.
 Existing dedicated G7 and stable G8 runtime gates remain unchanged.

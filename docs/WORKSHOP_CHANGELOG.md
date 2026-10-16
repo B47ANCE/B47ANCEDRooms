@@ -2,11 +2,11 @@
 
 MP testing build - dedicated multiplayer NOT TESTED
 
-Workshop testing update for in-game popup and button validation.
+Project thumbnail update: use the supplied B47ANCE'd Rooms artwork on this existing Workshop item. Runtime version 0.1.0-dev.3, its package, in-game icon and poster are unchanged.
 
-Fix confirmation popups appearing behind the Rooms editor. Confirmations use a top-layer native panel with two Rooms-styled labeled buttons and a viewport input shield. Cancel/Escape/controller B return to the editor; closing the editor also removes its popup. Only one confirmation can belong to an editor at a time.
+The existing build includes the popup/button and zoom-outline fixes. This thumbnail update makes no new gameplay or UI code changes.
 
-Offline Lua 5.1 regressions cover popup ordering, controls, click-through prevention, duplicate requests, confirmation arming, focus restoration, owner teardown and the previous zoom-outline behavior. Actual game rendering and the reported extra-icon origin remain unverified.
+Original supplied artwork and the previous thumbnail are preserved. Actual game rendering and the reported extra-icon origin remain unverified.
 
 Dedicated G7 and stable G8 remain BLOCKED. Published 0.1.0-dev.2 evidence and artifacts are preserved. Room geometry, permissions, persistence and the server API are unchanged.
 
