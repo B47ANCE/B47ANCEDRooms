@@ -1,5 +1,8 @@
 # Changelog
 
+## [Unreleased]
+- Select the user-supplied Rooms project/Workshop thumbnail. Preserve the original 1254x1254 PNG and previous team fallback; use a 512x512 PNG export below the existing uploader size limit. No runtime files, icon/poster, canonical mod version, published package or Workshop content were changed. This is an artwork authoring update, not a new runtime version iteration.
+
 ## [0.1.0-dev.3]
 - [VERIFIED distribution] Existing Workshop item 3820077442 updated successfully; live canonical description, identity and public visibility verified. Fresh download and desktop subscription match all 84 runtime files. Steam restarted gracefully. Offline/version/package checks PASS; native UI and dedicated acceptance remain NOT TESTED. See docs/WORKSHOP_UI_PUBLICATION.md.
 - Explicitly authorized Workshop UI testing update: preserve the prior 0.1.0-dev.2 package/provenance with hashes, validate current packaging and update existing item 3820077442 without changing visibility. No gameplay changes or runtime verification are implied.
