@@ -35,3 +35,42 @@ publish preparation folds that note into the current runtime version as a
 thumbnail-only update. Runtime tests were not repeated during authoring; publishing
 reruns the applicable preflight without claiming native UI/gameplay acceptance.
 Existing dedicated G7 and stable G8 runtime gates remain unchanged.
+
+## Verified Workshop thumbnail publication
+
+[VERIFIED live asset] The explicit publish request updated existing item
+3820077442 (App ID 108600, Mod ID B47ANCEDRooms). SteamCMD used cached login,
+exited 0 and reported Committing update...Success. The live preview URL changed;
+its 512x512 PNG is exactly 278399 bytes and matches thumbnail.png SHA-256 in the
+table above. Item title, public visibility and canonical description are unchanged.
+Upload completed October 15, 2026, 5:22 PM Phoenix (2026-10-16 00:22 UTC).
+The API's runtime-content update timestamp stayed unchanged for this artwork
+update; that timestamp is not used as evidence of the thumbnail change.
+
+Release preparation commit: `26c024ef43ab77d7bf9bdef339795c1114cc5221` on public
+B47ANCE/B47ANCEDRooms, feature/standalone-rooms. Runtime remains 0.1.0-dev.3;
+unchanged ZIP SHA-256:
+`8fd3fc035f31c38996569e743584c98058a26b113ffc2d9079eac07b6f5b6087`.
+Canonical inputs are artwork/thumbnail.png, docs/WORKSHOP_DESCRIPTION.md and
+docs/WORKSHOP_CHANGELOG.md. Generated text is workshop/description.bbcode and
+workshop/changenote.txt. Fresh stage/preview.png, VDF, manifest, local logs,
+API snapshots and receipt are under ignored
+dist/workshop-publish/0.1.0-dev.3-thumbnail/submission. Previous current-package
+provenance was copied with a hash/size preservation ledger; nothing was deleted,
+relabeled or rebuilt. Current provenance records this update separately from
+prior UI publication evidence.
+
+[TESTED offline] `python tests/run_tests.py` and
+`python scripts/check_versions.py --root . --release` PASS. Preparation used
+`python scripts/prepare_workshop.py --output dist/workshop-publish/0.1.0-dev.3-thumbnail/submission`.
+Its ZIP CRC/path/duplicate/case/source-manifest and 84-file source/package/stage
+parity checks PASS. Lua-only/localization/require-case checks, PNG dimensions,
+size, preview SHA, public source/freshness and staged/tracked-file audits PASS.
+No new runtime version or package was needed for a thumbnail metadata update.
+
+After verified upload, the same verified Steam desktop installation was exited
+gracefully and restarted with a hidden launch window; the client process returned.
+A read-only check confirms its subscribed 84 runtime files remain identical to
+the published UI build. No game/server launch, SP deployment, forced termination
+or other project change occurred. Native UI/gameplay and dedicated multiplayer
+remain NOT TESTED; G7 BLOCKED / NOT TESTED and stable G8 BLOCKED.

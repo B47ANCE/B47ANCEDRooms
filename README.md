@@ -4,7 +4,7 @@ Project Version: 0.1.0-dev.3
 
 ![B47ANCE'd Rooms project thumbnail](artwork/thumbnail.png)
 
-The project thumbnail uses the user-supplied Rooms artwork, selected for the explicitly requested Workshop thumbnail update. The original, upload export and prior fallback are retained; see [artwork provenance](artwork/README.md). Runtime version/package, icon and poster are unchanged.
+The project and live Workshop thumbnail use the user-supplied Rooms artwork. The hosted preview matches the selected PNG byte-for-byte. The original, upload export and prior fallback are retained; see [artwork and publication provenance](artwork/README.md). Runtime version/package, icon and poster are unchanged.
 
 The confirmation layering/lifecycle fix and consistent two-button Rooms dialogs are published as 0.1.0-dev.3. See the [UI audit](docs/UI_AUDIT.md) and [publication evidence](docs/WORKSHOP_UI_PUBLICATION.md). Upload, live metadata, fresh download and desktop subscription parity are verified; native popup acceptance remains pending. The prior 0.1.0-dev.2 ZIP/provenance is preserved with exact hashes under `dist/workshop-publish/0.1.0-dev.3-ui/previous-current`; current packaging is under `dist/current`.
 
