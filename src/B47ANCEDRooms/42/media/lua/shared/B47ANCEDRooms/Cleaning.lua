@@ -1,7 +1,6 @@
 -- Rooms owns cleaning permission and physical building membership, never inventory.
 local I=require 'B47ANCEDRooms/Identity'
 local R=require 'B47ANCEDRooms/Registry'
-local N=require 'B47ANCEDRooms/Native'
 local G=require 'B47ANCEDRooms/Geometry'
 return function(A)
  local jobs=setmetatable({},{__mode='k'})
@@ -15,7 +14,7 @@ return function(A)
   return false
  end
  local function release(player,j)
-  jobs[player]=nil;if claims[j.building]==j then claims[j.building]=nil end;N.cleanup(player)
+  jobs[player]=nil;if claims[j.building]==j then claims[j.building]=nil end
  end
  local function bounded(key,default,lo,hi)
   local n=I.option(key,default)
@@ -43,12 +42,11 @@ return function(A)
   if not b or not lib then return {status=e or 'CleaningNoBuilding'} end
   local old=jobs[player]
   if old and getTimestampMs()-old.time<1800000 then return {status='busy'} end
-  local rooms=N.list(player)
-  if #rooms==0 or #rooms>128 then return {status='CleaningNoBuilding'} end
   local claim=claims[b:getDef()]
   if claim and getTimestampMs()-claim.time<1800000 and not claim.actor:isDead() then return {status='busy'} end
   local key=getRandomUUID()
-  jobs[player]={key=key,actor=player,building=b:getDef(),revision=lib.revision,time=getTimestampMs(),rooms=rooms,index=1,tiles={},members={},limit=A.cleaningOptions().tileLimit,options=A.cleaningOptions()}
+  local rooms={};for _,room in pairs(lib.records) do rooms[#rooms+1]=room end
+  jobs[player]={key=key,actor=player,building=b:getDef(),revision=lib.revision,time=getTimestampMs(),rooms=rooms,index=1,tileIndex=1,roomUnloaded=false,roomMatches=false,tiles={},members={},limit=A.cleaningOptions().tileLimit,options=A.cleaningOptions()}
   claims[b:getDef()]=jobs[player]
   return {status='waiting',scope=key}
  end
@@ -56,27 +54,33 @@ return function(A)
   local j,e=current(player,key);if not j then return {status=e} end
   if j.failed then return {status=j.failed} end
   if not j.done then
-   local room=j.rooms[j.index]
-   if room then
-    -- Native snapshots remain Rooms-owned and use the detector's bounded steps.
-    local result=N.snapshot(player,room.id,4096)
-    if result.status=='waiting' then return {status='waiting'} end
-    if result.status~='ok' then j.failed=result.status;return {status=j.failed} end
-    local geometry=G.normalize(result.room.rows)
-    if not geometry then j.failed='CleaningScopeInvalid';return {status=j.failed} end
-    for _,p in ipairs(geometry.tiles) do
+   -- Inspect only persisted designated geometry, never vanilla room definitions.
+   -- Membership still comes from the engine's current physical building.
+   local start=getTimestampMs();local work=0
+   while j.index<=#j.rooms and work<64 and getTimestampMs()-start<4 do
+    local geometry=R.geometry(j.rooms[j.index]);local p=geometry.tiles[j.tileIndex]
+    if p then
+     work=work+1;j.tileIndex=j.tileIndex+1
      local sq=getCell():getGridSquare(p.x,p.y,p.z);local b=sq and sq:getBuilding()
-     if not b or b:getDef()~=j.building then j.failed='CleaningUnloaded';return {status=j.failed} end
-     local k=G.key(p.x,p.y,p.z)
-     if not j.members[k] then
-      if #j.tiles>=j.limit then j.failed='CleaningBuildingTooLarge';return {status=j.failed} end
-      j.members[k]=true;j.tiles[#j.tiles+1]={x=p.x,y=p.y,z=p.z}
+     if not sq then j.roomUnloaded=true end
+     if b and b:getDef()==j.building then
+      j.roomMatches=true;local k=G.key(p.x,p.y,p.z)
+      if not j.members[k] then
+       if #j.tiles>=j.limit then j.failed='CleaningBuildingTooLarge';return {status=j.failed} end
+       j.members[k]=true;j.tiles[#j.tiles+1]={x=p.x,y=p.y,z=p.z}
+      end
      end
+    else
+     if j.roomMatches then
+      -- A partially loaded matching designation must not become a partial scope.
+      if j.roomUnloaded then j.failed='CleaningUnloaded';return {status=j.failed} end
+     end
+     j.index=j.index+1;j.tileIndex=1;j.roomUnloaded=false;j.roomMatches=false
     end
-    j.index=j.index+1
-    return {status='waiting'}
    end
-   j.done=true
+   if j.index<=#j.rooms then return {status='waiting'} end
+   if #j.tiles==0 then j.failed='CleaningNoDesignatedRooms';return {status=j.failed} end
+   j.done=true;j.rooms=nil
    table.sort(j.tiles,function(a,b) if a.z~=b.z then return a.z<b.z end;if a.y~=b.y then return a.y<b.y end;return a.x<b.x end)
   end
   return {status='ok',scope=j.key,revision=j.revision,tiles=I.copy(j.tiles),options=I.copy(j.options)}

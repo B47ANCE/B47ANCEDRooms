@@ -1,12 +1,12 @@
 # Cleaning consumer API
 
-Project Version: 0.1.0-dev.3
+Project Version: 0.2.0-dev.1
 
 This is the Rooms side of the authorized offline Auto Clean integration. Rooms
-owns physical building membership and cleaning permission. It never searches
+uses vanilla physical building detection plus player-designated room geometry and owns cleaning permission. Vanilla room definitions are never read. It never searches
 inventories, transfers supplies, moves characters or cleans the world.
 
-`API.capabilities().cleaning == 1` advertises this additive consumer API. The
+`API.capabilities().cleaning == 1` advertises this consumer API. `cleaningScope='designatedRooms'` identifies the narrowed 0.2 scope contract; this intentionally replaces automatic native-room coverage. The
 existing general API remains 1. `boundaries.cleaning=true` means cooperating
 consumers can enforce cleaning permission; `vanillaFinalMutation=false` remains
 explicit. Unrelated vanilla actions and other mods do not acquire these checks.
@@ -18,12 +18,12 @@ No global world-protection claim is made.
 |---|---|
 | `cleaningOptions()` | Effective, validated server sandbox values; on clients this is presentation only |
 | `beginCleaningBuilding(player)` | Bind the current native physical building to the actual server actor; return `waiting` and a scope token |
-| `readCleaningBuilding(player, scope)` | Advance a bounded native room scan; return `waiting`, an explicit failure, or detached tile/options snapshots |
+| `readCleaningBuilding(player, scope)` | Advance a bounded designated-tile scan; return `waiting`, an explicit failure, or detached tile/options snapshots |
 | `validateCleaningBuilding(player, scope)` | Reject a foreign, expired, disconnected, dead, disabled, changed-policy/settings or changed-building lease |
-| `containsCleaningBuildingTile(player, scope, x, y, z)` | Current exact native building membership; does not itself grant cleaning permission |
+| `containsCleaningBuildingTile(player, scope, x, y, z)` | Current designated tile and physical building membership; does not itself grant cleaning permission |
 | `canCleanBuildingTile(player, scope, x, y, z)` | Membership plus the current independent `clean` policy and native safehouse loot/interact checks; returns `allow`, `deny` or `unknown` |
 | `canAccessAt(player, x, y, z, 'clean')` | Independent delegated clean permission at a loaded square |
-| `endCleaningBuilding(player, scope)` | Release only that actor's exact scope and native scan |
+| `endCleaningBuilding(player, scope)` | Release only that actor's exact scope |
 | `cleaningTick()` | Expire disconnected/dead/old scopes; registered once by the Rooms module |
 
 These are server APIs. Client geometry/permission claims are never accepted as
@@ -32,18 +32,25 @@ event, retain exact resource references itself, and revalidate before each final
 mutation. A clean grant never substitutes for supply `inspect`, `withdraw` or
 `deposit` permission. Unknown or denied access must stop the affected operation.
 
-The scope covers all loaded native rooms in the selected physical building,
-including floors and holes. Custom overrides cannot narrow the physical building
-into an invented native boundary. Delegated policy still applies on every tile.
-Unloaded/oversized/incomplete native geometry fails explicitly; no chunk is
-created or loaded and no truncated building is returned. Current native room
-limits (4096 tiles, 128-tile extent, 128 room definitions) remain conservative
-technical bounds. Total building size uses the sandbox limit below.
+The scope is the deduplicated union of loaded saved designated tiles whose
+current square belongs to the selected vanilla physical building. Explicit saved
+floors and holes are respected; other buildings and undesignated space are
+excluded. A building without matching designations returns
+`CleaningNoDesignatedRooms`; clients must prompt the user to designate rooms.
+The editor starts empty and Detect Walls is an explicit preview only.
+
+Each read examines at most 64 saved tiles within a 4 ms budget. The registry's
+128-record/16384-total-tile caps bound admission. A matching designation with any
+unloaded square fails `CleaningUnloaded` instead of returning a partial room.
+Entirely unloaded/unmatched designations are outside this loaded scope. This is
+not a promise of complete physical-building coverage. No chunk is created or
+loaded. The sandbox tile limit applies to the unique resulting scope; exceeding
+it fails instead of truncating. Delegated permission is checked for each action.
 
 One cooperating cleaning scope may own a building at a time. The actor, native
 building definition, Rooms registry revision and effective options are bound.
 A policy or setting change invalidates the lease. The 30-minute lifetime,
-bounded native scan steps and connection check are implementation safety limits.
+bounded designated scan steps and connection check are implementation safety limits.
 Cancellation/restart never replays a job. Scopes are ephemeral, not ModData.
 
 ## Sandbox settings
@@ -73,9 +80,7 @@ added; measured residual bleach is retained rather than dosed a second time.
 Existing private policies with no `clean` entry default to the assigned owner,
 as the other private actions do. Clean grants/rules are independent of storage
 grants and editable through the existing policy/visitor menus. Native denial,
-suspended parent associations and unknown state still fail closed. This is an
-additive development extension within the initial unreleased 0.1.0-dev.1
-checkpoint; no new canonical version or save root was invented. Current peers
+suspended parent associations and unknown state still fail closed. The independent clean rule was added in the historical 0.1.0-dev.1 checkpoint; the current 0.2 redesign changes scope geometry, not the save root or permission model. Current peers
 must be updated together. Older parsers can reject a persisted `clean` rule;
 downgrade after writing one is not claimed supported. No actual player save was
 opened or migrated for this work.
@@ -86,18 +91,19 @@ human translations.
 
 ## Validation and activation
 
-`python tests/run_tests.py` includes `test_cleaning.lua`, covering native floors,
-holes, actor binding, building claims, copied snapshots, independent clean rules,
+`python tests/run_tests.py` includes `test_cleaning.lua`, covering designated floors,
+holes, empty buildings, no vanilla room reads, deduplicated overlaps, exclusion of undesignated/foreign-building tiles, partial unload and registry invalidation, actor binding, building claims, copied snapshots, independent clean rules,
 native interact denial, validated defaults/bounds, settings revocation,
 disconnect/expiry and client denial. Syntax, case, inventory, localization,
 registry/network/migration and existing editor tests remain included.
 
-`python scripts/check_versions.py --root .` passes at the observed checkpoint.
-The paired Auto Clean runner in the Quartermaster repository uses this actual
-Rooms API with native Lua and simulated engine/network objects. Native UI,
-native fluid/inventory transactions, synchronization, real save/load and
-dedicated behavior are **NOT TESTED**. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
+`python scripts/check_versions.py --root .` confirms synchronized source mirrors
+but fails on the preserved published 0.1.0-dev.3 ZIP in dist/current. Packaging
+was not authorized for this source iteration. No artifact was relabeled.
+Quartermaster source/integration is outside this Rooms-only iteration; existing
+consumers must accept the designated-only scope and handle the no-rooms status.
+No current cross-repository or native integration result is claimed.
 
-The Auto Clean context/job installers remain outside packaged source, under
-Quartermaster `research/auto-clean/BuildingWire.lua`. No game/server was launched
-and no deployment or publication was performed by this work.
+Native UI, fluid/inventory transactions, synchronization, real save/load and
+dedicated behavior are **NOT TESTED**. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
+No game/server launch, deployment or publication occurred in this iteration.

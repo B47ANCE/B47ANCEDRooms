@@ -3,14 +3,6 @@
   "canonical": "VERSION",
   "mirrors": [
     {
-      "path": "docs/WORKSHOP_UI_PUBLICATION.md",
-      "pattern": "^Project Version: (?P<version>\\S+)$"
-    },
-    {
-      "path": "docs/UI_AUDIT.md",
-      "pattern": "^Project Version: (?P<version>\\S+)$"
-    },
-    {
       "path": "docs/WORKSHOP_DESCRIPTION.md",
       "pattern": "^Version (?P<version>\\S+)\\.$"
     },
@@ -80,6 +72,10 @@
     {
       "reference": "dist/workshop-publish/0.1.0-dev.3-ui/previous-current and preservation-ledger.json",
       "reason": "Published 0.1.0-dev.2 ZIP/provenance preserved with exact hashes during authorized .3 test-upload preparation. No historical package was relabeled or deleted."
+    },
+    {
+      "reference": "docs/WORKSHOP_UI_PUBLICATION.md and docs/UI_AUDIT.md",
+      "reason": "Published 0.1.0-dev.3 UI/distribution evidence; not validation of custom-room-only development."
     }
   ]
 }

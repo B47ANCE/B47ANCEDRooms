@@ -45,6 +45,8 @@ local confirmation
 U.Dialog.confirm=function(_,text,labels,callback) confirmation={text=text,callback=callback} end
 local p=ISPanelJoypad:new(0,0,500,500);p.playerNum=0;p.selectedItems={};local selections=p.selectedItems;selections.keep=true
 local editor=E.open(0,p);assert(editor and not p:isVisible())
+assert(editor.draft.geometry.count==0 and not editor.detection,'opening auto-designated a room')
+assert(not editor.buttons.RoomUseNative and not editor.buttons.RoomRestore,'retired native tools remain visible')
 assert(editor.sidebar.width<=width and editor.nameEntry and not editor.secondName:isVisible())
 -- Cover saved/added/removed/overlapping/split edges, invalid marks and the
 -- drag rectangle, including an elevated floor and fractional invalid marks.

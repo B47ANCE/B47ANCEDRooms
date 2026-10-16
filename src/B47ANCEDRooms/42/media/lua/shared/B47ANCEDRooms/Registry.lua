@@ -3,7 +3,6 @@ local I=require 'B47ANCEDRooms/Identity'
 local G=require 'B47ANCEDRooms/Geometry'
 local P=require 'B47ANCEDRooms/Policy'
 local Import=require 'B47ANCEDRooms/LegacyImport'
-local Native=require 'B47ANCEDRooms/Native'
 local R={jobs=setmetatable({},{__mode='k'})};B47ANCEDRooms.Registry=R
 local checked=setmetatable({},{__mode='k'});local shapes=setmetatable({},{__mode='k'})
 local tickets=setmetatable({},{__mode='k'});local ticketSerial=0
@@ -67,7 +66,8 @@ local function nearby(player,g)
  return sq:getX()>=b.x1-range and sq:getX()<=b.x2+range and sq:getY()>=b.y1-range and sq:getY()<=b.y2+range
 end
 local function copyRoom(room,player)
- local out=I.copy(room);out.canEditGeometry=P.edit(player,room,'geometry');out.canAssign=P.edit(player,room,'assignOwner');out.canRelinquish=room.assigned==owner(player)
+ local out=I.copy(room);out.nativeId=nil;out.nativeIds=nil
+ out.canEditGeometry=P.edit(player,room,'geometry');out.canAssign=P.edit(player,room,'assignOwner');out.canRelinquish=room.assigned==owner(player)
  if out.canAssign then local h=house(room.safehouse);out.parentMembers={}
   if h and h:getPlayers():size()<=256 then
    out.parentMembers[1]=h:getOwner();for n=0,h:getPlayers():size()-1 do local who=h:getPlayers():get(n);if who~=h:getOwner() then out.parentMembers[#out.parentMembers+1]=who end end
@@ -108,26 +108,25 @@ local function currentPermission(player,sq)
  return true
 end
 local fields={protocol=true,request=true,id=true,roomRevision=true,revision=true,editKey=true,nonce=true,action=true,
- name=true,rows=true,disconnected=true,confirm=true,ids=true,secondName=true,secondRows=true,nativeId=true,
+ name=true,rows=true,disconnected=true,confirm=true,ids=true,secondName=true,secondRows=true,
  assigned=true,policy=true,renew=true,owner=true} -- owner is ignored; authenticated actor owns creation.
 local function plainArgs(args)
  if type(args)~='table' or getmetatable(args) then return false end
  for k in pairs(args) do if not fields[k] then return false end end
  return true
 end
-function R.cleanup(player) R.jobs[player]=nil;tickets[player]=nil;Native.cleanup(player) end
+function R.cleanup(player) R.jobs[player]=nil;tickets[player]=nil end
 local function finish(job,status,reason) job.done=true;job.result={status=status,reason=reason};return job.result end
 function R.handle(player,command,args)
  if isClient() or not player or not plainArgs(args) then return {status='invalid'} end
  local who=owner(player);if type(who)~='string' or #who<1 or #who>256 then return {status='invalid'} end
  if not R.options().enabled then return {status='RoomDisabled'} end
- if command=='nativeGet' then return Native.snapshot(player,args.id,R.options().maxTiles) end
  if command=='roomList' then
   local rooms,revision,world=R.metadata(player);if not rooms then return {status=revision} end
   local t=tickets[player]
   local pending=R.jobs[player] and not R.jobs[player].done
   if not t or not pending and (args.renew==true or t.used or getTimestampMs()-t.time>120000) then ticketSerial=ticketSerial+1;t={key=tostring(getTimestampMs())..':'..ticketSerial,time=getTimestampMs()};tickets[player]=t end
-  return {status='ok',rooms=rooms,revision=revision,world=world,options=R.options(),editKey=t.key,nativeRooms=Native.list(player)}
+  return {status='ok',rooms=rooms,revision=revision,world=world,options=R.options(),editKey=t.key}
  end
  if command=='roomGet' then
   local room,e=R.resolve(player,args.id,args.roomRevision);if not room then return {status=e} end
@@ -165,7 +164,7 @@ function R.handle(player,command,args)
  if args.id and (not old or not member(player,old)) then return {status='RoomDenied'} end
  if old and args.roomRevision~=old.revision then return {status='conflict'} end
  local action=args.action
- if action=='restore' then if not old or not old.nativeId then return {status='invalid'} end;action='delete' end
+ if action=='restore' then return {status='RoomPermissionUnsupported'} end
  if old and action=='approveBoundary' then
   if not P.edit(player,old,'geometry') or not old.pendingBoundary then return {status='RoomDenied'} end
   local approved={};for k,v in pairs(args) do approved[k]=v end
@@ -217,27 +216,20 @@ function R.handle(player,command,args)
   if old then
    for _,k in ipairs({'assigned','policy','parentOwner','parentBounds','nativeId','nativeIds'}) do changed[id][k]=I.copy(old[k]) end
    if P.edit(player,old,'geometry') then local h=house(old.safehouse);if h then changed[id].parentOwner=h:getOwner();changed[id].parentBounds={h:getX(),h:getY(),h:getX2(),h:getY2()} end end
-  elseif args.nativeId~=nil then
-   if type(args.nativeId)~='string' or not Native.resolve(player,args.nativeId) then return {status='RoomUnavailable'} end
-   for _,r in pairs(lib.records) do for _,alias in ipairs(I.aliases(r)) do if alias==args.nativeId then return {status='conflict'} end end end
-   changed[id].nativeId=args.nativeId;changed[id].nativeIds={args.nativeId}
   end
   if action=='merge' then
    if not P.edit(player,old,'geometry') then return {status='RoomDenied'} end
    if not old or not G.array(args.ids,128) or #args.ids<2 or args.confirm~=true then return {status='invalid'} end
-   local merged=G.normalize({});local seen={};local nativeIds={};local nativeSeen={}
+   local merged=G.normalize({});local seen={}
    for _,other in ipairs(args.ids) do
     if type(other)~='string' or #other~=73 or seen[other] then return {status='invalid'} end;seen[other]=true
     local r=lib.records[other];if not r or not member(player,r) then return {status='RoomDenied'} end
     if not P.edit(player,r,'geometry') or r.assigned~=old.assigned or not I.equal(r.policy or {mode='shared',rules={},grants={}},old.policy or {mode='shared',rules={},grants={}}) then return {status='RoomDenied'} end
-    for _,alias in ipairs(I.aliases(r)) do if not nativeSeen[alias] then nativeSeen[alias]=true;nativeIds[#nativeIds+1]=alias end end
     if r.safehouse~=old.safehouse then return {status='RoomAssociationConflict'} end
     merged,e=G.edit(merged.rows,r.rows,false,R.options().maxTiles);if not merged then return {status=e} end
     if other~=old.id then removed[other]=true end
    end
    if not seen[old.id] then return {status='invalid'} end
-   if #nativeIds>128 then return {status='RoomTooLarge'} end
-   changed[id].nativeIds=nativeIds;changed[id].nativeId=old.nativeId or nativeIds[1]
    local a,b=G.normalize(changed[id].rows),merged
    if a.count~=b.count then return {status='RoomGeometryInvalid'} end
    for key in pairs(a.set) do if not b.set[key] then return {status='RoomGeometryInvalid'} end end

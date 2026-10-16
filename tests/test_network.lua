@@ -7,6 +7,7 @@ require 'B47RoomsBootstrap'
 assert(not B47ANCEDRooms.Client and not B47ANCEDRooms.Editor and not B47RoomsUI,'headless bootstrap loaded presentation')
 local W=B47ANCEDRooms.Network;local R=B47ANCEDRooms.Registry
 assert(W.handle(f.player,'roomList',{protocol=99}).status=='ProtocolMismatch')
+assert(W.handle(f.player,'nativeGet',{protocol=1}).status=='ProtocolMismatch')
 assert(W.handle(f.player,'assignMe',{protocol=1}).status=='ProtocolMismatch')
 for _,bad in ipairs({0,-1,1/0,0/0,1.5,2147483648}) do
  f.fire('OnClientCommand','B47ANCEDRooms','roomList',f.player,{protocol=1,request=bad})
@@ -15,7 +16,7 @@ end
 assert(W.handle(f.player,'roomList',{protocol=1,unknown={}}).status=='invalid')
 f.advance(3000)
 local lease=W.handle(f.player,'roomList',{protocol=1,request=7,renew=true})
-assert(lease.status=='ok' and lease.editKey)
+assert(lease.status=='ok' and lease.editKey and lease.nativeRooms==nil)
 local args={protocol=1,request=8,action='save',name='Network Room',rows={{0,0,0,0}},nonce='transport:1',editKey=lease.editKey,revision=lease.revision,owner='forged'}
 assert(W.handle(f.player,'roomChange',args).status=='pending')
 for _=1,8 do f.advance(250);f.tick() end

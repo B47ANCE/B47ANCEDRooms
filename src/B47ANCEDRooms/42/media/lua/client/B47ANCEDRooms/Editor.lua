@@ -41,7 +41,7 @@ function E:select(meta)
  local function perform()
   if not meta then self:load();return end
   self.readGeneration=(self.readGeneration or 0)+1;local generation=self.readGeneration
-  self:request(meta.native and 'nativeGet' or 'roomGet',{id=meta.id,roomRevision=meta.revision},function(r)
+  self:request('roomGet',{id=meta.id,roomRevision=meta.revision},function(r)
    if generation~=self.readGeneration then return end
    if r.status=='ok' then self.saved[meta.id]=r.room;self:load(r.room) else self:message(r.status) end
   end)
@@ -53,21 +53,20 @@ function E:refresh()
  self:request('roomList',{},function(r)
   if r.status~='ok' then self:message(r.status);return end
   self.revision=r.revision;self.editKey=r.editKey;self.options=r.options;self.metadata=r.rooms;self.list:clear()
+  self.saved={};self.edgeSource=nil
   for _,room in ipairs(r.rooms) do self.list:addItem(room.label,room) end
-  for _,room in ipairs(r.nativeRooms or {}) do self.list:addItem(tr('RoomNativeLabel',room.label),room) end
   -- Fetch overlays only while this editor is open; bounded admission/payloads.
   self.overlayLimited=#r.rooms>8
   self.fetch={};for _,m in ipairs(r.rooms) do if #self.fetch<8 then self.fetch[#self.fetch+1]=m end end
   self:message(self.conflict or 'RoomPreviewOnly')
-  if self.autoCandidate then self.autoCandidate=false;self:detect(false) end
  end)
 end
-function E:detect(native)
+function E:detect()
  if self.draft and self.draft.action~='save' then self:message('RoomFinishCompound');return end
  local p=self.cursor;local sq=getCell():getGridSquare(p.x,p.y,p.z)
- local job,e=Detect.start(sq,native,self.options and self.options.maxTiles or 1024,self.options and self.options.doorways)
+ local job,e=Detect.start(sq,self.options and self.options.maxTiles or 1024,self.options and self.options.doorways)
  if not job then self:message(e);return end
- self.detection=job;self:message(native and 'RoomNativeWarning' or 'RoomDetecting')
+ self.detection=job;self:message('RoomDetecting')
 end
 function E:tools()
  local menu=ISContextMenu.get(self.playerNum,getMouseX(),getMouseY())
@@ -98,7 +97,7 @@ function E:apply(a,b)
  local ok
  if self.tool=='RoomSplit' then ok,e=self.draft:split(region.rows)
  else ok,e=self.draft:edit(region.rows,self.tool=='RoomRemoveRectangle' or self.tool=='RoomErase') end
- if ok then self.autoCandidate=false;self.detection=nil;changed(self);self:message('RoomPreviewOnly') else self:message(e) end
+ if ok then self.detection=nil;changed(self);self:message('RoomPreviewOnly') else self:message(e) end
 end
 function E:point()
  if not self.worldFocus then return end
@@ -219,7 +218,7 @@ function E:submit(action,extra)
   sequence=sequence+1;local nonce=tostring(getTimestampMs())..':'..sequence
   local args={action=action or draft.action,nonce=nonce,editKey=self.editKey,revision=self.revision,id=record and record.id,roomRevision=record and record.revision,
    name=self.nameEntry:getInternalText(),rows=draft.geometry.rows,disconnected=self.disconnected,confirm=true,
-   ids=draft.ids,secondName=self.secondName:getInternalText(),secondRows=draft.second and draft.second.rows,nativeId=record and record.nativeId}
+   ids=draft.ids,secondName=self.secondName:getInternalText(),secondRows=draft.second and draft.second.rows}
   for k,v in pairs(extra or {}) do args[k]=v end
   local submission={args=args,nextAt=0,time=getTimestampMs(),changePending=true};self.submission=submission;self:message('RoomSaving')
   -- Acquire a fresh server lease after confirmation, preserving the preview's
@@ -238,9 +237,8 @@ function E:submit(action,extra)
    end)
   end)
  end
- local identity=record and record.id and ('r'..tostring(record.ordinal)) or record and record.nativeId and tr('RoomNativeOverride') or tr('RoomNewIdentity')
+ local identity=record and record.id and ('r'..tostring(record.ordinal)) or tr('RoomNewIdentity')
  local text=action=='delete' and tr('RoomDeleteConfirm',identity) or tr('RoomSaveConfirm',identity,count)
- if action=='restore' then text=tr('RoomRestoreConfirm') end
  if action~='delete' and draft.action=='merge' then
   local labels={};for _,id in ipairs(draft.ids) do
    local label=id:sub(-8);for _,meta in ipairs(self.metadata or {}) do if meta.id==id then label=meta.label;break end end;labels[#labels+1]=label
@@ -298,9 +296,9 @@ function E:createChildren()
   self.buttonRows[#self.buttonRows+1]=controls;self:insertNewLineOfButtons(unpack(controls));y=y+h+4
  end
  row({'RoomCreate',function() self:select(nil) end},{'RoomTools',E.tools})
- row({'RoomRedetect',function() self:detect(false) end},{'RoomUseNative',function() self:detect(true) end})
+ row({'RoomRedetect',E.detect})
  row({'RoomUndo',function() self.draft:undo();changed(self) end},{'RoomRedo',function() self.draft:redo();changed(self) end})
- row({'RoomPermissions',E.permissions},{'RoomRestore',function() if self.record and self.record.id and self.record.nativeId then self:submit('restore') end end})
+ row({'RoomPermissions',E.permissions})
  row({'RoomClear',function() self.draft:set(assert(G.normalize({})));changed(self) end},{'RoomCombine',E.combine})
  row({'RoomDuplicate',function() if self.record and self.draft.action=='save' then local rows=self.draft.geometry.rows;local title=self.nameEntry:getInternalText();self:load({name=title,rows=rows});self.record=nil end end},
   {'RoomDelete',function() if self.record then self:submit('delete') end end})
@@ -312,7 +310,7 @@ function E:createChildren()
  local old=self.sidebar.prerender
  self.sidebar.prerender=function(panel)
   old(panel);local c=U.Theme.colors.text
-  local lines={tr('RoomEditorTitle'),tr('RoomPolicyBoundary'),tr(self.tool or 'RoomAddRectangle'),tr('RoomCounts',self.floor,self.draft and self.draft.geometry.count or 0),tr('RoomInvalidCount',self.invalidCount or 0),self.status or '',self.overlayLimited and tr('RoomOverlayLimit') or '',tr('RoomWorldHelp'),tr('RoomLegend'),tr('RoomLegendOther')}
+  local lines={tr('RoomEditorTitle'),tr('RoomDesignationHelp'),tr('RoomPolicyBoundary'),tr(self.tool or 'RoomAddRectangle'),tr('RoomCounts',self.floor,self.draft and self.draft.geometry.count or 0),tr('RoomInvalidCount',self.invalidCount or 0),self.status or '',self.overlayLimited and tr('RoomOverlayLimit') or '',tr('RoomWorldHelp'),tr('RoomLegend'),tr('RoomLegendOther')}
   local key=table.concat(lines,'\n')..':'..width..':'..U.Theme.metrics().font
   if self.textKey~=key then
    self.textKey=key;self.textLines={}
@@ -343,7 +341,6 @@ function E:update()
   end
  end
  self.buttons.RoomDisconnectedToggle:setTitle(tr(self.disconnected and 'RoomDisconnectedOn' or 'RoomDisconnectedOff'))
- self.buttons.RoomRestore:setEnable(self.record and self.record.id and self.record.nativeId~=nil or false)
  self.buttons.RoomPermissions:setEnable(self.record and self.record.id~=nil or false)
  if self.focusAction~=self.draft.action then
   self.focusAction=self.draft.action;self.secondName:setVisible(self.draft.action=='split')
@@ -426,10 +423,10 @@ function E.open(num,owner,onClose)
  local player=getSpecificPlayer(num);if not player then return end
  local editor=ISPanelJoypad.new(E,getPlayerScreenLeft(num),getPlayerScreenTop(num),getPlayerScreenWidth(num),getPlayerScreenHeight(num))
  editor.owner=owner;editor.playerNum=num;editor.player=player;editor.floor=math.floor(player:getZ());editor.cursor={x=math.floor(player:getX()),y=math.floor(player:getY()),z=editor.floor}
- editor.saved={};editor.autoCandidate=true;editor.onClose=onClose;editor:initialise();editor:instantiate();editor:addToUIManager();editor:setWantKeyEvents(true)
+ editor.saved={};editor.onClose=onClose;editor:initialise();editor:instantiate();editor:addToUIManager();editor:setWantKeyEvents(true)
  editor:bringToTop()
  editor:load();editor:refresh();if owner then owner:setVisible(false) end;setJoypadFocus(num,editor);active[num]=editor
- -- One candidate after server options arrive, never on every movement tile.
+ -- Designation starts empty; structural detection is an explicit preview tool.
  return editor
 end
 if Events then

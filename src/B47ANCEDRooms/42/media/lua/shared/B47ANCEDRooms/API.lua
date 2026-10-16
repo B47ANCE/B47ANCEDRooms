@@ -1,7 +1,6 @@
 local I=require 'B47ANCEDRooms/Identity'
 local R=require 'B47ANCEDRooms/Registry'
 local P=require 'B47ANCEDRooms/Policy'
-local N=require 'B47ANCEDRooms/Native'
 local G=require 'B47ANCEDRooms/Geometry'
 local A={version=1,ready=true};B47ANCEDRooms.API=A
 local listeners={}
@@ -9,9 +8,6 @@ local function raw(player,id,revision)
  if isClient() or not player or not R.options().enabled then return nil,'RoomPermissionUnavailable' end
  local lib,e=R.library();if not lib then return nil,e end
  if type(id)~='string' or #id>180 or id:find('%c') then return nil,'RoomUnavailable' end
- if id:sub(1,7)=='native:' then
-  for _,r in pairs(lib.records) do for _,alias in ipairs(I.aliases(r)) do if alias==id then id=r.id;break end end end
- end
  local record=lib.records[id]
  if record then
   if revision~=nil and record.revision~=revision then return nil,'conflict' end
@@ -19,13 +15,11 @@ local function raw(player,id,revision)
   if not sq or sq:getX()<b.x1-range or sq:getX()>b.x2+range or sq:getY()<b.y1-range or sq:getY()>b.y2+range then return nil,'RoomOutOfRange' end
   return record
  end
- local n=N.resolve(player,id)
- if n and (revision==nil or revision==0) then return n end
  return nil,'RoomUnavailable'
 end
 function A.capabilities()
- return {api=1,version=I.version,ready=true,editor=true,nativeOverrides=true,delegatedPolicies=true,
-  cleaning=1,boundaries={quartermasterGrant=true,vanillaFinalMutation=false,entry=false,doors=false,building=false,destruction=false,cleaning=true}}
+ return {api=1,version=I.version,ready=true,editor=true,nativeOverrides=false,designatedRooms=true,delegatedPolicies=true,
+  cleaning=1,cleaningScope='designatedRooms',boundaries={quartermasterGrant=true,vanillaFinalMutation=false,entry=false,doors=false,building=false,destruction=false,cleaning=true}}
 end
 function A.subscribe(fn) if type(fn)~='function' then return end;listeners[fn]=true;return function() listeners[fn]=nil end end
 function B47ANCEDRooms.changed(revision)
@@ -49,7 +43,6 @@ function A.canAccessAt(player,x,y,z,action)
 end
 function A.containsTile(player,id,revision,x,y,z)
  local r=raw(player,id,revision);if not r then return false end
- if r.native then return N.contains(player,r.id,x,y,z) end
  return G.contains(R.geometry(r),x,y,z)
 end
 function A.containsTarget(player,id,revision,target)
@@ -58,18 +51,16 @@ function A.containsTarget(player,id,revision,target)
 end
 function A.resolveRoom(player,id,revision)
  local r,e=raw(player,id,revision);if not r then return {status=e} end
- if r.native then return {status='ok',room={id=r.id,name=r.name,revision=0,native=true}} end
  local can=P.edit(player,r,'rename')
  if not can then
   local permitted=false;for _,t in ipairs(R.geometry(r).tiles) do if A.canAccessAt(player,t.x,t.y,t.z,'discover').state=='allow' then permitted=true;break end end
   if not permitted then return {status='RoomAccessDenied'} end
  end
- return {status='ok',room={id=r.id,name=r.name,revision=r.revision,nativeId=r.nativeId,count=R.geometry(r).count}}
+ return {status='ok',room={id=r.id,name=r.name,revision=r.revision,count=R.geometry(r).count}}
 end
 function A.geometry(player,id,revision)
  local resolution=A.resolveRoom(player,id,revision);if resolution.status~='ok' then return resolution end
  local r=raw(player,id,revision)
- if r.native then return N.snapshot(player,r.id,R.options().maxTiles) end
  return {status='ok',room={id=r.id,name=r.name,revision=r.revision,rows=I.copy(r.rows)}}
 end
 function A.tiles(player,id,revision)
@@ -91,41 +82,37 @@ function A.listRooms(player,filter)
      if def and other and other:getDef()==def then inBuilding=true;break end
     end
    end
-   if inBuilding then rooms[#rooms+1]={id=id,name=r.name,label=r.name..' [r'..r.ordinal..']',revision=r.revision,count=g.count,bounds=I.copy(g.bounds),nativeId=r.nativeId} end
+   if inBuilding then rooms[#rooms+1]={id=id,name=r.name,label=r.name..' [r'..r.ordinal..']',revision=r.revision,count=g.count,bounds=I.copy(g.bounds)} end
   end
  end
  table.sort(rooms,function(a,b) return a.label<b.label end)
- local natives=N.list(player)
- local out={};for _,n in ipairs(natives) do
-  local overridden=false;for _,r in pairs(lib.records) do for _,alias in ipairs(I.aliases(r)) do if alias==n.id then overridden=true;break end end end
-  local nativeHouse=filter and filter.safehouse and P.at(getCell():getGridSquare(n.x,n.y,n.z))
-  if not overridden and (not filter or not filter.safehouse or nativeHouse and nativeHouse:getId()==filter.safehouse) then out[#out+1]=n end
- end
- return {status='ok',rooms=rooms,nativeRooms=out,revision=revision,world=world}
+ return {status='ok',rooms=rooms,revision=revision,world=world}
 end
 function A.roomsAt(player,x,y,z)
  local list=A.listRooms(player);if list.status~='ok' then return list end
  local out={}
- for _,rows in ipairs({list.rooms,list.nativeRooms}) do for _,r in ipairs(rows) do
+ for _,r in ipairs(list.rooms) do
   if A.containsTile(player,r.id,r.revision,x,y,z) then out[#out+1]=r end
- end end
+ end
  return {status='ok',rooms=out}
 end
 function A.permissions(player,id)
- local r,e=raw(player,id);if not r or r.native or not P.edit(player,r,'rename') then return {status=e or 'RoomDenied'} end
+ local r,e=raw(player,id);if not r or not P.edit(player,r,'rename') then return {status=e or 'RoomDenied'} end
  return {status='ok',owner=r.owner,assigned=r.assigned,safehouse=r.safehouse,revision=r.revision,
   policy=I.copy(r.policy or {mode='shared',rules={},grants={}}),canAssign=P.edit(player,r,'assignOwner'),canEditGeometry=P.edit(player,r,'geometry')}
 end
 function A.change(player,args) return R.handle(player,'roomChange',args) end
 function A.beginEdit(player) return R.handle(player,'roomList',{renew=true}) end
-local mutations={create='save',rename='save',editGeometry='save',delete='delete',restoreVanilla='restore',merge='merge',split='split',assignOwner='assign',revokeOwner='assign',setPolicy='policy',requestBoundary='requestBoundary',approveBoundary='approveBoundary',rejectBoundary='rejectBoundary',relinquish='relinquish'}
+-- Retired API entry point fails explicitly; it must never delete a saved room.
+function A.restoreVanilla() return {status='RoomPermissionUnsupported'} end
+local mutations={create='save',rename='save',editGeometry='save',delete='delete',merge='merge',split='split',assignOwner='assign',revokeOwner='assign',setPolicy='policy',requestBoundary='requestBoundary',approveBoundary='approveBoundary',rejectBoundary='rejectBoundary',relinquish='relinquish'}
 for method,action in pairs(mutations) do local operation=action;local revoke=method=='revokeOwner'
  A[method]=function(player,args) local payload=I.copy(args or {});payload.action=operation;if revoke then payload.assigned=nil end;return A.change(player,payload) end
 end
 function A.canAccess(player,id,action,target)
  local r,e=raw(player,id);if not r then return {state='unknown',reason=e} end
  if action=='editRoom' or action=='assignOwner' then
-  return {state=not r.native and P.edit(player,r,action=='assignOwner' and action or 'geometry') and 'allow' or 'deny',revision=r.revision}
+  return {state=P.edit(player,r,action=='assignOwner' and action or 'geometry') and 'allow' or 'deny',revision=r.revision}
  end
  if not P.actions[action] then return {state='unknown',reason='RoomPermissionUnsupported'} end
  local sq=target and target.obj and target.obj:getSquare()

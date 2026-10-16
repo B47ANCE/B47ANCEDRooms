@@ -1,5 +1,5 @@
 B47ANCEDRooms=B47ANCEDRooms or {}
-local I={version='0.1.0-dev.3',api=1};B47ANCEDRooms.Identity=I
+local I={version='0.2.0-dev.1',api=1};B47ANCEDRooms.Identity=I
 -- Native safehouses persist account usernames. These are authenticated login
 -- identities, not character/display names; Java long SteamIDs risk Lua rounding.
 function I.account(player)
@@ -22,6 +22,7 @@ function I.equal(a,b,depth)
  return true
 end
 function I.aliases(room)
+ -- Schema-2 recovery metadata only. These aliases never resolve a live room.
  return room.nativeIds or (room.nativeId and {room.nativeId} or {})
 end
 function I.option(key,default)

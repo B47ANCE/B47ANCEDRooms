@@ -3,7 +3,7 @@ local R=require 'B47ANCEDRooms/Registry'
 local A=require 'B47ANCEDRooms/API'
 local W={};B47ANCEDRooms.Network=W
 local participants=setmetatable({},{__mode='k'});local buckets=setmetatable({},{__mode='k'})
-local commands={roomList=true,roomGet=true,roomChange=true,roomPoll=true,roomCancel=true,nativeGet=true}
+local commands={roomList=true,roomGet=true,roomChange=true,roomPoll=true,roomCancel=true}
 local function requestID(value)
  return type(value)=='number' and value==value and value>=1 and value<=2147483647 and value==math.floor(value) and value or nil
 end
@@ -17,7 +17,9 @@ function W.handle(player,command,args)
  participants[player]=true
  local result=R.handle(player,command,args)
  if command=='roomList' and result.status=='ok' then
-  local visible=A.listRooms(player);result.rooms=visible.rooms;result.nativeRooms=visible.nativeRooms
+  local visible=A.listRooms(player,{building=true})
+  if visible.status~='ok' then return visible end
+  result.rooms=visible.rooms
  end
  return result
 end

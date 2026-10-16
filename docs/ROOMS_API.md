@@ -1,19 +1,19 @@
 # Standalone Rooms API, authority and acceptance
 
-Project Version: 0.1.0-dev.3
+Project Version: 0.2.0-dev.1
 
 ## Scope and compatibility
 
 [VERIFIED source] Initial standalone extraction from team-owned Quartermaster 0.7.0-dev.1. Canonical version is root VERSION. Authoritative runtime root is `src/B47ANCEDRooms/42`; package root is `B47ANCEDRooms`. Mod ID is B47ANCEDRooms. Steam assigned Workshop ID 3820077442 for the authorized first test publication; Quartermaster is not a dependency. See EXTRACTION_AUDIT.md for the historical baseline inventory and provenance. No third-party implementation/assets are included; isolated B47RoomsUI modules derive from team-owned UI code.
 
-Room API version 1, network protocol 1 and registry schema 2 are independent of project SemVer. Callers check API readiness/version/capabilities. Unsupported or unknown permission results must fail closed for protected actions.
+Room API version 1, network protocol 1 and registry schema 2 are independent of project SemVer. Callers check API readiness/version/capabilities. Version 0.2.0-dev.1 intentionally removes the native-room feature while retaining the general managed-room API 1 and its wire format. `nativeOverrides=false`, `designatedRooms=true` and `cleaningScope='designatedRooms'` advertise the new scope; old native-ID consumers must switch to designated UUIDs. Unsupported or unknown permission results must fail closed for protected actions.
 
 ## Modules and public contract
 
 | Module | Responsibility |
 |---|---|
 | Identity / Geometry | Authenticated account identity, bounded snapshots, canonical floor-specific row runs and algebra |
-| Detection / Native | Bounded structural candidates, exact native identity/membership and cooperative snapshots |
+| Detection | Explicit bounded structural previews using walls, doors and windows; no vanilla room definitions |
 | Policy | Native parent hierarchy, metadata authority, per-action gameplay grants and protected overlap checks |
 | LegacyImport / Registry | Data-only import, independent persistence, leases, revisions and cooperative atomic writes |
 | API / Network | Versioned snapshots/decisions, whitelisted commands, admission and change subscriptions |
@@ -25,22 +25,22 @@ Room API version 1, network protocol 1 and registry schema 2 are independent of 
 Read methods on the authoritative Lua side:
 
 - `capabilities()` describes API/version and supported boundaries.
-- `listRooms(player, filter?)`: bounded accessible managed/native metadata, registry revision/world. `filter.safehouse` uses exact native ID; `filter.building=true` restricts to the actor's native building.
+- `listRooms(player, filter?)`: bounded accessible designated-room metadata, registry revision/world. `filter.safehouse` uses exact native ID; `filter.building=true` restricts to the actor's native building.
 - `resolveRoom(player, id, revision?)`, `resolveAt(player,x,y,z)`, `roomsAt(...)`: explicit result/status. Overlapping organizational rooms make resolveAt ambiguous, never select arbitrary ownership.
-- `geometry(player,id,revision?)`, `tiles(...)`, `containsTile(...)`, `containsTarget(...)`: snapshots or exact membership. Native snapshots may return waiting/busy and require retry; no native room object is mutated.
+- `geometry(player,id,revision?)`, `tiles(...)`, `containsTile(...)`, `containsTarget(...)`: snapshots or exact membership. Only saved designated geometry is returned; native IDs return RoomUnavailable.
 - `permissions(player,id)`: authorized metadata managers receive owner/assigned/safehouse/revision/policy and edit capabilities.
 - `canAccessAt(player,x,y,z,action)`, `canAccess(player,id,action,target?)`: `{state='allow'|'deny'|'unknown',reason?,revision?}`. Unknown is not authorization. `editRoom` and `assignOwner` are metadata decisions.
 - `subscribe(callback)` returns an unsubscribe function. Changes invalidate consumers; no UI must be open.
 
 Client entry points `request(playerNum,command,args,callback)` and `openEditor(playerNum,parent?,onClose?)` submit intent/use local presentation. Client calls cannot mutate the server registry.
 
-Mutation helpers `beginEdit`, `change`, `create`, `rename`, `editGeometry`, `delete`, `restoreVanilla`, `merge`, `split`, `assignOwner`, `revokeOwner`, `setPolicy`, `requestBoundary`, `approveBoundary`, `rejectBoundary`, `relinquish` are server-side operations using Registry validation. A helper does not bypass leases/revisions or become a synchronous promise of persistence.
+Mutation helpers `beginEdit`, `change`, `create`, `rename`, `editGeometry`, `delete`, `merge`, `split`, `assignOwner`, `revokeOwner`, `setPolicy`, `requestBoundary`, `approveBoundary`, `rejectBoundary`, `relinquish` are server-side operations using Registry validation. A helper does not bypass leases/revisions or become a synchronous promise of persistence.
 
 ## Protocol and writes
 
-Module B47ANCEDRooms accepts only roomList, roomGet, nativeGet, roomChange, roomPoll and roomCancel. Each network request uses protocol 1 and a finite positive integer request ID. The server receives the authenticated actor; submitted owner fields cannot assign identity. Malformed IDs, unknown commands/fields and invalid policy/geometry are rejected. Admission is bounded per actor (burst 8, replenish 4/s, write cost 4); technical limits are internal, not gameplay options.
+Module B47ANCEDRooms accepts only roomList, roomGet, roomChange, roomPoll and roomCancel. Each network request uses protocol 1 and a finite positive integer request ID. The server receives the authenticated actor; submitted owner fields cannot assign identity. Malformed IDs, unknown commands/fields and invalid policy/geometry are rejected. Admission is bounded per actor (burst 8, replenish 4/s, write cost 4); technical limits are internal, not gameplay options.
 
-Acquire `roomList` with renew=true to obtain editKey, registry revision, world and server options. Submit roomChange with a bounded unique nonce, editKey, original registry revision, action, and applicable id/roomRevision. Save uses name and compressed rows `{z,y,x1,x2}`; merge also uses exact managed IDs/confirm; split uses secondName/secondRows/confirm. A native override supplies nativeId. Assignment uses a current parent account, policy uses validated mode/rules/grants. Delete/restore requires explicit confirm.
+Acquire `roomList` with renew=true to obtain editKey, registry revision, world and server options. Submit roomChange with a bounded unique nonce, editKey, original registry revision, action, and applicable id/roomRevision. Save uses name and compressed rows `{z,y,x1,x2}`; merge also uses exact managed IDs/confirm; split uses secondName/secondRows/confirm. Native override fields and nativeGet are rejected. Assignment uses a current parent account, policy uses validated mode/rules/grants. Delete requires explicit confirm. The retired restoreVanilla helper returns RoomPermissionUnsupported; a raw restore action is also rejected without changing the record.
 
 Writes return pending and are polled by nonce. Tile checks are cooperative (32 checks/job, up to 4 jobs within a 4ms tick budget); at most 16 active writes and a 30-second lifetime. The final replacement checks the original revision and current permissions, then atomically swaps the library. Replays return the same outcome; a used lease cannot create a second write. Stale revisions conflict. Cancellation/timeout does not invent a failed or successful mutation. Client write timeouts are uncertain; late replies cannot revive an expired callback.
 
@@ -48,9 +48,9 @@ Writes return pending and are polled by nonce. Tile checks are cooperative (32 c
 
 Native safehouses persist authenticated account usernames. Multiplayer ownership uses `IsoPlayer.getUsername()`, not display/character names. Java-long SteamIDs must not be rounded through Lua numbers. Offline SP uses local:<playerNum>; automatic cross-mode identity migration is unsupported.
 
-Managed IDs are world UUID plus room UUID; ordinal display labels are not identity. Native IDs have native: prefix. Overrides retain aliases through merges; split leaves aliases on the surviving original identity. Restore removes the override and exposes all original native definitions. Native room loot/spawn names and map geometry stay unchanged.
+Managed IDs are world UUID plus room UUID; ordinal display labels are not identity. Only designated UUIDs resolve rooms. Existing saved overrides already have independent geometry and remain ordinary designations with the same ID, revision, owner, assignment, policy and pending boundary. Historical nativeId/nativeIds fields remain inert schema-2 recovery metadata, hidden from client/API snapshots; they never enumerate, resolve, import or restore vanilla rooms. Reads do not rewrite saves. There is no destructive migration or downgrade/export guarantee. Vanilla room loot/spawn names and map geometry stay unchanged.
 
-Canonical row runs support rectangles, add/subtract/paint/erase, holes, irregular/disconnected regions and explicit floors. Technical caps: 4096 tiles/room, 512 row runs, 128 XY extent, 8 floors, z -32..31, 128 records and 16384 total managed tiles. Detection stops at unloaded/unbounded areas. Door identity remains a boundary even open; doorless openings follow the server setting. Previews never persist automatically. Undo/redo is bounded client history.
+Canonical row runs support rectangles, add/subtract/paint/erase, holes, irregular/disconnected regions and explicit floors. Technical caps: 4096 tiles/room, 512 row runs, 128 XY extent, 8 floors, z -32..31, 128 records and 16384 total managed tiles. The editor starts empty, lists only saved designations in the current physical building, and never automatically imports or previews a vanilla room. Explicit Detect Walls previews structural boundaries and stops at unloaded/unbounded areas. Building grouping uses square:getBuilding():getDef() identity on loaded designated tiles; no room-definition API is used. A designation spanning buildings is listed if it intersects the selected building; cleaning includes only its tiles in that building. Door identity remains a boundary even open; doorless openings follow the server setting. Previews never persist automatically. Undo/redo is bounded client history.
 
 Authoritative root is `ModData.getOrCreate('B47ANCEDRooms').customRooms`, schema 2. Registry holds world, revision, serial and records (ID, ordinal, name, creator, revision, rows, times, parent association, optional assigned account/policy/parent stamp/native aliases/pending boundary). No arbitrary saved code is executed.
 
@@ -79,8 +79,8 @@ Server sandbox controls: Enabled (true); RoomTileLimit (64–4096, default 1024)
 
 ## Validation, artifacts and gates
 
-[TESTED offline Windows/Lua 5.1] `python tests/run_tests.py`: syntax, standalone namespace, no inventory mutation, manifest/case/localization, geometry/edit/replay/concurrency/corruption, structural detection, ownership/action grants/native denial, parent changes, overlap, migration, native overrides/merged aliases/restore, editor mouse/controller lifecycle and dedicated bootstrap/transport. Native-shaped fixtures are disposable and do not certify actual Lua/Java networking.
+[TESTED offline Windows/Lua 5.1] `python tests/run_tests.py`: syntax, standalone namespace, no inventory mutation, manifest/case/localization, geometry/edit/replay/concurrency/corruption, structural detection, ownership/action grants/native denial, parent changes, overlap, migration, preserved legacy override reload/edits, rejected native IDs/restore/import, empty drafts/current-building filtering, designated-only cleaning scopes, editor mouse/controller lifecycle and dedicated bootstrap/transport. Native-shaped fixtures are disposable and do not certify actual Lua/Java networking.
 
-`python scripts/check_versions.py` checks current mirrors. `python scripts/build_dev.py` builds a development-only ZIP after offline checks; `python scripts/check_versions.py --release` validates artifact version consistency, not gameplay G8. Production manifests and source/ZIP hashes are recorded separately. B42 common/AnimSets/actiongroups empty roots are explicit package entries. No host Python/Lupa, test code, credentials or custom Java is packaged. The user-supplied Rooms thumbnail takes precedence for the next Workshop preview; the icon/poster retain exact verified team fallback branding. See artwork/README.md for source/export provenance and publication status.
+`python scripts/check_versions.py` checks current mirrors. At this source-only checkpoint current source mirrors match, while the preserved published 0.1.0-dev.3 ZIP fails the filename/embedded-version artifact checks; no package is rebuilt or relabeled without authorization. `python scripts/build_dev.py` builds a development-only ZIP after offline checks; `python scripts/check_versions.py --release` validates artifact version consistency, not gameplay G8. Production manifests and source/ZIP hashes are recorded separately. B42 common/AnimSets/actiongroups empty roots are explicit package entries. No host Python/Lupa, test code, credentials or custom Java is packaged. The user-supplied Rooms thumbnail takes precedence for the next Workshop preview; the icon/poster retain exact verified team fallback branding. See artwork/README.md for source/export provenance and publication status.
 
-[RUNTIME GATE] Actual native UI/detection/override behavior, persistent native save/load and two-remote-client dedicated tests are NOT TESTED. Required acceptance includes parent/delegate/guest and native denial, source/destination policies, concurrent edits/sorts, revocation before/after dispatch, container relocation, reconnect/restart and item conservation. G7 NOT TESTED/BLOCKED; stable G8 BLOCKED. Development packaging does not deploy, publish or launch anything.
+[RUNTIME GATE] Actual native UI/structural detection/designation behavior, persistent native save/load and two-remote-client dedicated tests are NOT TESTED. Required acceptance includes parent/delegate/guest and native denial, source/destination policies, concurrent edits/sorts, revocation before/after dispatch, container relocation, reconnect/restart and item conservation. G7 NOT TESTED/BLOCKED; stable G8 BLOCKED. Development packaging does not deploy, publish or launch anything.
