@@ -2,7 +2,28 @@
 
 Project Version: 0.2.0-dev.2
 
-Status: PREPARED; upload and download verification pending.
+[VERIFIED distribution] SteamCMD exited 0 and reported Committing update...Success
+on existing item 3820077442. Live canonical description, title, App ID, public
+visibility and supplied thumbnail match. Release commit: `f4b5e701dae29de778a8e1d8b856ca35426e986a`.
+Content update: 2026-10-16 08:36:29 UTC;
+Phoenix: 2026-10-16 01:36:29 AM.
+
+A fresh SteamCMD Workshop download matches exactly all 83 committed runtime
+files and required common/AnimSets/actiongroups roots. The desktop subscription is still on .1 after restart at the last check; its
+managed update is pending. The desktop files were inspected read-only and never
+manually replaced. Fresh SteamCMD distribution parity is verified separately.
+The registered Steam client exited gracefully and the same verified executable
+started with a hidden launch window. No force termination, game/server launch,
+local SP deployment or server mutation occurred. Exact receipt/provenance and
+local diagnostics remain ignored; these checks prove distribution only.
+
+Committed source/package/stage parity, ZIP CRC/path/duplicate/case integrity,
+real paragraph breaks, MP testing labels and public source/consumer links pass.
+The rendered description is 5296 UTF-8 bytes, below the current documented
+8000-byte bound checked on October 16, 2026:
+https://partner.steamgames.com/doc/api/ISteamRemoteStorage#k_cchPublishedDocumentDescriptionMax
+Fresh GitHub ancestry/remote SHA and tracked/staged secret scans were verified
+before public pushes and upload. G7 and stable G8 remain BLOCKED.
 
 Explicit publish request authorizes the keep-open fix on existing Workshop item
 3820077442, App ID 108600, Mod ID B47ANCEDRooms. Public visibility and the supplied
