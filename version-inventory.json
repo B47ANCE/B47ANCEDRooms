@@ -37,6 +37,10 @@
     {
       "path": "docs/ROOM_DESIGNATIONS.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
+      "path": "docs/WORKFLOW_COMPLETION.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
     }
   ],
   "changelog": {

@@ -318,4 +318,5 @@ assert(#navGets==reads and nav.record.id=='upper' and nav.roomType=='kitchen','c
 nav:requestClose();confirmation.callback('cancel');assert(not nav.closed)
 nav:requestClose();confirmation.callback('accept');assert(nav.closed)
 Q.Client.request=request
+dofile(TEST_ROOT..'/test_workflow.lua')
 print('PASS OFFLINE room editor: creation/editing separation, quick create/rename, retained geometry/policy selection, contextual/advanced/visitor controls, busy guards, dirty Done/Escape, destructive/incomplete review, read recovery, consecutive saves, zoom and modal/parent lifecycle')

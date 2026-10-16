@@ -3,6 +3,7 @@
   "42/media/lua/client/B47ANCEDRooms/Client.lua",
   "42/media/lua/client/B47ANCEDRooms/Draft.lua",
   "42/media/lua/client/B47ANCEDRooms/Editor.lua",
+  "42/media/lua/client/B47ANCEDRooms/Workflow.lua",
   "42/media/lua/client/B47RoomsContext.lua",
   "42/media/lua/client/B47RoomsUI/Appearance.lua",
   "42/media/lua/client/B47RoomsUI/Controls.lua",

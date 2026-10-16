@@ -19,7 +19,7 @@ local function raw(player,id,revision)
  return nil,'RoomUnavailable'
 end
 function A.capabilities()
- return {api=1,version=I.version,ready=true,editor=true,nativeOverrides=false,designatedRooms=true,delegatedPolicies=true,roomDesignations=1,storageScopes=1,
+ return {api=1,version=I.version,ready=true,editor=true,nativeOverrides=false,designatedRooms=true,delegatedPolicies=true,roomDesignations=1,storageScopes=1,policyCopy=1,
   cleaning=1,cleaningScope='designatedRooms',boundaries={quartermasterGrant=true,vanillaFinalMutation=false,entry=false,doors=false,building=false,destruction=false,cleaning=true}}
 end
 function A.subscribe(fn) if type(fn)~='function' then return end;listeners[fn]=true;return function() listeners[fn]=nil end end
@@ -84,7 +84,7 @@ function A.listRooms(player,filter)
     end
    end
    local floors={};local last;for _,row in ipairs(g.rows) do if row[1]~=last then floors[#floors+1]=row[1];last=row[1] end end
-   if inBuilding then rooms[#rooms+1]={id=id,name=r.name,label=r.name..' [r'..r.ordinal..']',revision=r.revision,count=g.count,bounds=I.copy(g.bounds),floors=floors,roomType=r.roomType or 'unassigned',designation=r.designation or 'unassigned'} end
+   if inBuilding then rooms[#rooms+1]={id=id,name=r.name,label=r.name..' [r'..r.ordinal..']',revision=r.revision,count=g.count,bounds=I.copy(g.bounds),floors=floors,roomType=r.roomType or 'unassigned',designation=r.designation or 'unassigned',canConfigureRoom=P.edit(player,r,'policy')} end
   end
  end
  table.sort(rooms,function(a,b) return a.label<b.label end)
@@ -138,7 +138,7 @@ function A.change(player,args) return R.handle(player,'roomChange',args) end
 function A.beginEdit(player) return R.handle(player,'roomList',{renew=true}) end
 -- Retired API entry point fails explicitly; it must never delete a saved room.
 function A.restoreVanilla() return {status='RoomPermissionUnsupported'} end
-local mutations={create='save',rename='save',editGeometry='save',delete='delete',merge='merge',split='split',assignOwner='assign',revokeOwner='assign',setPolicy='policy',setDesignation='designation',requestBoundary='requestBoundary',approveBoundary='approveBoundary',rejectBoundary='rejectBoundary',relinquish='relinquish'}
+local mutations={create='save',rename='save',editGeometry='save',delete='delete',merge='merge',split='split',assignOwner='assign',revokeOwner='assign',setPolicy='policy',copyPolicy='copyPolicy',setDesignation='designation',requestBoundary='requestBoundary',approveBoundary='approveBoundary',rejectBoundary='rejectBoundary',relinquish='relinquish'}
 for method,action in pairs(mutations) do local operation=action;local revoke=method=='revokeOwner'
  A[method]=function(player,args) local payload=I.copy(args or {});payload.action=operation;if revoke then payload.assigned=nil end;return A.change(player,payload) end
 end

@@ -39,12 +39,14 @@ end
 function E:isDirty()
  return self.draft and (not self.record and self.draft.geometry.count>0
   or not Q.Identity.equal(self.draft.geometry.rows,self.draft.original.rows)
-  or self.roomType~=(self.record and self.record.roomType or 'unassigned') or self.designation~=(self.record and self.record.designation or 'unassigned')
+  or self.roomType~=(self.startRoomType or 'unassigned') or self.designation~=(self.startDesignation or 'unassigned')
   or self.nameEntry:getInternalText()~=self.startName or self.draft.action~='save')
 end
 function E:load(room)
  self.readGeneration=(self.readGeneration or 0)+1
  self.record=room;self.draft=Draft.new(room);self.roomType=room and room.roomType or 'unassigned';self.designation=room and room.designation or 'unassigned';self.nameEntry:setText(room and room.name or tr('RoomDefaultName'))
+ if not room and self.keepLabels and self.lastLabels then self.roomType=self.lastLabels.roomType;self.designation=self.lastLabels.designation end
+ self.startRoomType=self.roomType;self.startDesignation=self.designation;self.stale=false
  self.accountEntry:setText('')
  self.secondName:setText(tr('RoomSecondName'));self.first=nil;self.detection=nil;self.incomplete=nil;self.mergeIDs=nil
  self.startName=self.nameEntry:getInternalText();self.conflict=nil;self.visitorEditing=false;self.loadingSelection=false;self.readRetry=nil
@@ -86,13 +88,13 @@ function E:highlightList()
  end
 end
 function E:rebuildList()
- self.list:clear();self.list.itemheight=math.max(24,U.Theme.metrics().font+8);local floors={};local groups={}
+ self.list:clear();self.list.fontHgt=U.Theme.metrics().font;self.list.itemheight=math.max(24,self.list.fontHgt+8);local floors={};local groups={}
  for _,meta in ipairs(self.metadata or {}) do
   local levels=meta.floors or (meta.bounds and {meta.bounds.z1} or {self.floor})
-  for _,z in ipairs(levels) do
+  for _,z in ipairs(levels) do if self:matches(meta,z) then
    if not groups[z] then groups[z]={};floors[#floors+1]=z end
    groups[z][#groups[z]+1]=meta
-  end
+  end end
  end
  table.sort(floors,function(a,b) if a==b then return false elseif a==self.floor then return true elseif b==self.floor then return false end;return a<b end)
  for _,z in ipairs(floors) do
@@ -102,12 +104,13 @@ function E:rebuildList()
    row.tooltip=row.text..'\n'..tr('RoomTileCount',meta.count or 0)
   end
  end
+ local seen={};self.matchCount=0;for _,row in ipairs(self.list.items) do if row.item.id and not seen[row.item.id] then seen[row.item.id]=true;self.matchCount=self.matchCount+1 end end
  self:highlightList()
 end
 function E:queueOverlays()
  self.overlayGeneration=(self.overlayGeneration or 0)+1;self.fetchPending=false;self.fetch={};self.edgeSource=nil
  local keep={};local eligible=0
- for _,meta in ipairs(self.metadata or {}) do if onFloor(meta,self.floor) then
+ for _,meta in ipairs(self.metadata or {}) do if onFloor(meta,self.floor) and self:matches(meta,self.floor) then
   eligible=eligible+1
   if eligible<=8 then keep[meta.id]=true;if not self.saved[meta.id] then self.fetch[#self.fetch+1]=meta end end
  end end
@@ -168,13 +171,15 @@ end
 function E:refresh(after)
  self.refreshGeneration=(self.refreshGeneration or 0)+1;local generation=self.refreshGeneration
  self.overlayGeneration=(self.overlayGeneration or 0)+1
- self.fetchPending=false;self.fetch={};self.refreshFailed=false
+ self.fetchPending=false;self.fetch={};self.refreshFailed=false;self.listPending=true
  self:request('roomList',{},function(r)
   if generation~=self.refreshGeneration then return end
+  self.listPending=false
   if r.status~='ok' then self.loadingSelection=false;self.refreshFailed=true;self:message(r.status);return end
   self.revision=r.revision;self.editKey=r.editKey;self.options=r.options;self.metadata=r.rooms;self.list:clear()
   self.saved={};self.edgeSource=nil
   self:rebuildList();self:queueOverlays()
+  if self:afterRefresh(after) then return end
   if after and after.id then
    for _,meta in ipairs(r.rooms) do if meta.id==after.id then self:readRoom(meta,'RoomSaved',after);return end end
    self.loadingSelection=false;self:message('RoomUnavailable');return
@@ -191,7 +196,8 @@ function E:saveSucceeded(submission)
  -- for a fresh lease, without ending this editor session or restoring its parent.
  self.revision=nil;self.editKey=nil;self.down=false;self.dragStart=nil;self.lastPaint=nil
  self:setCapture(false);self.disconnected=false
- local args=submission.args;local id=args.id and args.action~='delete' and args.id
+ local args=submission.args;if not args.id and args.action=='save' then self.lastLabels={roomType=args.roomType,designation=args.designation} end
+ local id=args.id and args.action~='delete' and args.id
  local visitor=self.visitorEditing;local account=self.accountEntry:getInternalText()
  self:load();self.loadingSelection=id~=nil
  self:refresh({id=id,message=args.action=='delete' and 'RoomDeleted' or 'RoomSavedNext',name=args.name,visitor=visitor,account=account})
@@ -296,7 +302,7 @@ function E:onKeyPress(key)
  if U.Dialog.active(self) then return end
  if key==Keyboard.KEY_ESCAPE then self:requestClose()
  elseif self:isBusy() then return
- elseif self.nameEntry:isFocused() or self.secondName:isFocused() or self.accountEntry:isFocused() then return
+ elseif self.nameEntry:isFocused() or self.secondName:isFocused() or self.accountEntry:isFocused() or self.searchEntry:isFocused() then return
  elseif isCtrlKeyDown() and key==Keyboard.KEY_Z then if isShiftKeyDown() then self.draft:redo() else self.draft:undo() end;changed(self)
  elseif isCtrlKeyDown() and key==Keyboard.KEY_Y then self.draft:redo();changed(self) end
 end
@@ -371,6 +377,7 @@ function E:visitorMenu()
 end
 function E:submit(action,extra)
  if self:isBusy() or self.revision==nil then return end
+ if self.stale then self:message('RoomChangesWaiting');return end
  if self.detection then self:message('RoomDetecting');return end
  local draft=self.draft;local record=self.record;local count=draft.geometry.count
  if action~='delete' and count==0 then self:message('RoomGeometryInvalid');return end
@@ -380,7 +387,7 @@ function E:submit(action,extra)
   local args={action=action or draft.action,nonce=nonce,editKey=self.editKey,revision=self.revision,id=record and record.id,roomRevision=record and record.revision,
    name=self.nameEntry:getInternalText(),rows=draft.geometry.rows,roomType=self.roomType,designation=self.designation,disconnected=self.disconnected,confirm=true,
    ids=draft.ids,secondName=self.secondName:getInternalText(),secondRows=draft.second and draft.second.rows}
-  for k,v in pairs(extra or {}) do args[k]=v end
+  for k,v in pairs(extra or {}) do if k~='sourceLabel' and k~='sourceMode' then args[k]=v end end
   local submission={args=args,nextAt=0,time=getTimestampMs(),changePending=true};self.submission=submission;self:message('RoomSaving')
   self:updateSidebar()
   -- Acquire a fresh server lease after confirmation, preserving the preview's
@@ -401,6 +408,7 @@ function E:submit(action,extra)
  end
  local identity=record and record.id and ('r'..tostring(record.ordinal)) or tr('RoomNewIdentity')
  local text=action=='delete' and tr('RoomDeleteConfirm',identity) or tr('RoomSaveConfirm',identity,count)
+ if action=='copyPolicy' then text=tr(extra.copyVisitors and 'RoomCopyVisitorsConfirm' or 'RoomCopyRulesConfirm',extra.sourceLabel or '',record.name)..'\n'..tr('RoomCopyMode',tr(extra.sourceMode=='private' and 'RoomPrivate' or 'RoomShared')) end
  if action~='delete' and draft.action=='merge' then
   local labels={};for _,id in ipairs(draft.ids) do
    local label=id:sub(-8);for _,meta in ipairs(self.metadata or {}) do if meta.id==id then label=meta.label;break end end;labels[#labels+1]=label
@@ -435,13 +443,14 @@ function E:closeEditor()
    if (result.status=='uncertain' or result.status=='timeout') and player and player.setHaloNote then player:setHaloNote(tr('RoomOutcomeUnknown')) end
   end)
  end
- self.closed=true;U.Dialog.close(self);self.detection=nil;self.readRetry=nil;self.down=false;self.first=nil;self.submission=nil;self.saved={};self.savedShapes=nil;self.edgeCache={}
+ self.closed=true;if self.unsubscribe then self.unsubscribe();self.unsubscribe=nil end;self.pendingRevision=nil;self.recheckSelection=nil
+ U.Dialog.close(self);self.detection=nil;self.readRetry=nil;self.down=false;self.first=nil;self.submission=nil;self.saved={};self.savedShapes=nil;self.edgeCache={}
  self:setCapture(false);self:setWantKeyEvents(false);active[self.playerNum]=nil
  ISPanelJoypad.removeFromUIManager(self)
  if owner and not owner.removed then owner:setVisible(true) end
  U.Focus.restore(self.playerNum,owner)
  self.draft=nil;self.fetch=nil;self.metadata=nil;self.record=nil;self.owner=nil;self.player=nil;self.onClose=nil
- self.edgeSource=nil;self.validation=nil;self.validationSource=nil;self.invalidTiles=nil;self.textLines=nil
+ self.lastLabels=nil;self.filters=nil;self.searchPending=nil;self.edgeSource=nil;self.validation=nil;self.validationSource=nil;self.invalidTiles=nil;self.textLines=nil
  if onClose then onClose() end
 end
 function E:removeFromUIManager() self:closeEditor() end
@@ -455,23 +464,27 @@ function E:updateSidebar()
  local history=self.draft and #self.draft.history>0 or false
  local future=self.draft and #self.draft.future>0 or false
  local geometry=saved and record.canEditGeometry==true
+ local hasCopySource=false;for _,meta in ipairs(self.metadata or {}) do if saved and meta.id~=record.id and meta.canConfigureRoom~=false then hasCopySource=true;break end end
  local key=table.concat({tostring(saved),tostring(visitor),tostring(busy),tostring(split),tostring(dirty),
   tostring(self.advanced),tostring(geometry),tostring(count>0),tostring(self.revision~=nil),
-  tostring(self.roomType),tostring(self.designation),tostring(self.draft and self.draft.action),tostring(record and record.canConfigureRoom),tostring(self.refreshFailed),tostring(self.detection~=nil),tostring(history),tostring(future),self.sidebar.width,h},':')
+  tostring(hasCopySource),tostring(self.stale),tostring(self.keepLabels),tostring(self.summaryOpen),tostring(self.searchEntry and self.searchEntry:getInternalText()==''),tostring(self.roomType),tostring(self.designation),tostring(self.draft and self.draft.action),tostring(record and record.canConfigureRoom),tostring(self.refreshFailed),tostring(self.detection~=nil),tostring(history),tostring(future),self.sidebar.width,self.height,h},':')
  if self.layoutKey==key then return end;self.layoutKey=key
  local width=math.max(1,self.sidebar.width-32);local y=12
+ self.sidebar:setHeight(math.max(1,self.height-h-16))
+ U.Layout.place(self.actionBar,self.sidebar.x,math.max(0,self.height-h-16),self.sidebar.width,h+16)
  if self.list.itemheight~=math.max(24,U.Theme.metrics().font+8) then self:rebuildList() end
  local function place(widget,show,height)
   widget:setVisible(show)
   if show then U.Layout.place(widget,12,y,width,height);y=y+height+4 end
  end
+ place(self.searchEntry,true,h);self.searchControls:layout();place(self.filterButton,true,h)
  place(self.list,true,144);place(self.nameEntry,true,h)
  place(self.secondName,split,h);place(self.accountEntry,visitor,h)
  if not visitor and self.accountEntry:isFocused() then self.accountEntry:unfocus() end
  for _,entry in ipairs(self.buttonRows) do
-  local show=entry.when=='basic' or entry.when=='saved' and saved or entry.when=='visitor' and visitor
+  local show=entry.when=='footer' or entry.when=='basic' or entry.when=='saved' and saved or entry.when=='visitor' and visitor
    or entry.when=='advanced' and self.advanced or entry.when=='advancedSaved' and self.advanced and saved
-   or entry.when=='advancedGeometry' and self.advanced and geometry or entry.when=='refresh' and self.refreshFailed
+   or entry.when=='advancedGeometry' and self.advanced and geometry or entry.when=='refresh' and (self.refreshFailed or self.stale) or entry.when=='conflict' and self.stale
   local visible={}
   for _,button in ipairs(entry.controls) do
    local on=show and (button.b47Condition~='geometry' or geometry) or false
@@ -479,17 +492,21 @@ function E:updateSidebar()
    if on then visible[#visible+1]=button end
   end
   local w=#visible==2 and (width-4)/2 or width
-  for i,button in ipairs(visible) do U.Layout.place(button,12+(i-1)*(w+4),y,w,h) end
-  if #visible>0 then y=y+h+4 end
+  for i,button in ipairs(visible) do U.Layout.place(button,12+(i-1)*(w+4),entry.when=='footer' and 8 or y,w,h) end
+  if #visible>0 and entry.when~='footer' then y=y+h+4 end
  end
  self.buttons.RoomDesignation:setTitle(tr('RoomDesignationSummary',tr('RoomType_'..(self.roomType or 'unassigned')),tr('RoomRole_'..(self.designation or 'unassigned'))))
  self.buttons.RoomDesignation:setEnable(not busy and self.draft~=nil and self.draft.action=='save' and (not saved or record.canConfigureRoom==true))
  self.buttons.Save:setTitle(tr(saved and 'RoomSaveChanges' or 'RoomSaveNext'))
- self.buttons.Save:setEnable(not busy and not self.detection and self.revision~=nil and count>0 and (not saved or dirty))
+ self.buttons.Save:setEnable(not busy and not self.stale and not self.detection and self.revision~=nil and count>0 and (not saved or dirty))
  self.buttons.RoomUndo:setEnable(not busy and history);self.buttons.RoomRedo:setEnable(not busy and future)
  self.buttons.RoomClear:setEnable(not busy and count>0)
  self.buttons.RoomPermissions:setEnable(not busy and saved and not dirty)
  self.buttons.RoomPermissions:setTooltip(tr(dirty and 'RoomSaveBeforePolicy' or 'RoomPermissionsHelp'))
+ self.buttons.RoomCopyPermissions:setEnable(not busy and not dirty and not self.stale and hasCopySource and saved and record.canConfigureRoom==true)
+ self.buttons.RoomRepeat:setTitle(tr(self.keepLabels and 'RoomRepeatOn' or 'RoomRepeatOff'))
+ self.buttons.RoomSummary:setTitle(tr(self.summaryOpen and 'RoomSummaryHide' or 'RoomSummaryShow'))
+ self.filterButton:setEnable(not busy);self.searchEntry:setEditable(not busy);self.searchControls.clear:setEnable(not busy)
  self.buttons.RoomVisitor:setEnable(not busy and visitor and not dirty)
  self.buttons.RoomAdvanced:setTitle(tr(self.advanced and 'RoomAdvancedHide' or 'RoomAdvancedShow'))
  self.buttons.RoomDisconnectedToggle:setTitle(tr(self.disconnected and 'RoomDisconnectedOn' or 'RoomDisconnectedOff'))
@@ -497,6 +514,7 @@ function E:updateSidebar()
  self.statusY=y+8;self.textKey=nil
  U.Focus.visibleRows(self,function(panel)
   panel.joypadButtonsY={};panel.allJoypadButtons={};panel.joypadButtons={}
+  panel:insertNewLineOfButtons(panel.searchEntry,panel.searchControls.clear);panel:insertNewLineOfButtons(panel.filterButton)
   panel:insertNewLineOfButtons(panel.list);panel:insertNewLineOfButtons(panel.nameEntry)
   panel:insertNewLineOfButtons(panel.secondName);panel:insertNewLineOfButtons(panel.accountEntry)
   for _,entry in ipairs(panel.buttonRows) do panel:insertNewLineOfButtons(unpack(entry.controls)) end
@@ -510,9 +528,13 @@ function E:createChildren()
  self.sidebar=ISPanelJoypad:new(math.max(0,self.width-360),0,math.min(360,self.width),self.height)
  self.sidebar:initialise();self:addChild(self.sidebar);U.skin(self.sidebar,'panel')
  self.sidebar:setScrollChildren(true);self.sidebar:addScrollBars()
- local function add(widget)
-  widget:initialise();widget:instantiate();self.sidebar:addChild(widget);return widget
+ self.actionBar=ISPanelJoypad:new(self.sidebar.x,0,self.sidebar.width,44);self.actionBar:initialise();self:addChild(self.actionBar);U.skin(self.actionBar,'panel')
+ local function add(widget,parent)
+  widget:initialise();widget:instantiate();(parent or self.sidebar):addChild(widget);return widget
  end
+ self.searchEntry=add(U.TextInput:new('',12,0,200,28));self.searchEntry:setMaxTextLength(96);self.searchEntry:setTooltip(tr('RoomSearch'))
+ self.searchControls=U.SearchField.attach(self.sidebar,self.searchEntry,tr('RoomSearch'))
+ self.filterButton=add(U.Button:new(12,0,200,28,tr('RoomFilters'),self,E.filtersMenu))
  self.list=add(U.ScrollList:new(12,12,200,96));self.list.itemheight=24
  local drawItem=self.list.doDrawItem
  if drawItem then self.list.doDrawItem=function(list,y,item,alt)
@@ -532,7 +554,7 @@ function E:createChildren()
  local function row(when,left,right)
   local controls={}
   for _,spec in ipairs({left,right}) do
-   local button=add(U.Button:new(12,0,200,28,tr(spec[1]),self,spec[2]))
+   local button=add(U.Button:new(12,0,200,28,tr(spec[1]),self,spec[2]),when=='footer' and self.actionBar or self.sidebar)
    button.b47Condition=spec[3];self.buttons[spec[1]]=button;controls[#controls+1]=button
   end
   self.buttonRows[#self.buttonRows+1]={when=when,controls=controls}
@@ -543,9 +565,12 @@ function E:createChildren()
  row('basic',{'RoomUndo',function() self.draft:undo();changed(self) end},{'RoomRedo',function() self.draft:redo();changed(self) end})
  row('basic',{'RoomFloorDown',function() self:setFloor(self.floor-1) end},
   {'RoomFloorUp',function() self:setFloor(self.floor+1) end})
- row('saved',{'RoomPermissions',E.permissions})
+ row('saved',{'RoomSummary',function() self.summaryOpen=not self.summaryOpen;self:updateSidebar() end},{'RoomPermissions',E.permissions})
+ row('saved',{'RoomCopyPermissions',E.copyPermissionsMenu})
+ row('basic',{'RoomRepeat',function() self.keepLabels=not self.keepLabels;self:updateSidebar() end})
  row('visitor',{'RoomVisitor',E.visitorMenu},{'RoomHideVisitors',function() self.visitorEditing=false;self:updateSidebar() end})
- row('refresh',{'RoomReload',function() self:refresh() end})
+ row('refresh',{'RoomReload',function() self:refresh({live=true}) end})
+ row('conflict',{'RoomResolveConflict',E.conflictMenu})
  row('basic',{'RoomAdvanced',function() self.advanced=not self.advanced;self:updateSidebar() end})
  row('advanced',{'RoomClear',function() self.draft:set(assert(G.normalize({})));changed(self) end})
  row('advanced',{'RoomDisconnectedToggle',function() self.disconnected=not self.disconnected;self:message(self.disconnected and 'RoomDisconnectedWarning' or 'RoomPreviewOnly') end})
@@ -553,7 +578,7 @@ function E:createChildren()
   if self.record and self.draft.action=='save' then local rows=self.draft.geometry.rows;local title=self.nameEntry:getInternalText();self:load({name=title,rows=rows,roomType=self.roomType,designation=self.designation});self.record=nil end
  end},{'RoomCombine',E.combine,'geometry'})
  row('advancedGeometry',{'RoomDelete',function() if self.record then self:submit('delete') end end})
- row('basic',{'Save',function() self:submit() end},{'Done',E.requestClose})
+ row('footer',{'Save',function() self:submit() end},{'Done',E.requestClose})
  U.skin(self.buttons.Save,'button','primary');U.skin(self.buttons.RoomDelete,'button','destructive')
  self.buttons.RoomDesignation:setTooltip(tr('RoomDesignationHelp'))
  self.buttons.RoomPermissions:setTooltip(tr('RoomSaveBeforePolicy'));self.buttons.RoomVisitor:setTooltip(tr('RoomAccountHelp'))
@@ -561,8 +586,13 @@ function E:createChildren()
  self.sidebar.prerender=function(panel)
   renderSidebar(panel)
   local width=math.max(1,panel.width-32)
+  local lineHeight=math.max(22,U.Theme.metrics().font+6)
   local lines={tr('RoomEditorTitle'),tr(self.record and 'RoomEditHelp' or 'RoomCreateHelp'),
    tr(self.tool or 'RoomAddRectangle'),tr('RoomCounts',self.floor,self.draft and self.draft.geometry.count or 0),self.status or ''}
+  lines[#lines+1]=tr('RoomMatchCount',self.matchCount or 0,#(self.metadata or {}))
+  local f=self.filters or {};if f.roomType then lines[#lines+1]=tr('RoomType_'..f.roomType) end;if f.role then lines[#lines+1]=tr('RoomRole_'..f.role) end
+  if f.floor~=nil then lines[#lines+1]=f.floor=='current' and tr('RoomCurrentFloor') or tr('RoomFloorGroup',f.floor) end
+  for _,line in ipairs(self:summaryLines()) do lines[#lines+1]=line end
   if (self.invalidCount or 0)>0 then lines[#lines+1]=tr('RoomInvalidCount',self.invalidCount) end
   if self.tool=='RoomSelect' then local names={};for _,m in ipairs(self:roomsUnderCursor()) do names[#names+1]=m.label end;lines[#lines+1]=#names>0 and table.concat(names,', ') or tr('RoomSelectEmpty') end
   if self.overlayLimited then lines[#lines+1]=tr('RoomFloorOverlayLimit') end
@@ -571,9 +601,9 @@ function E:createChildren()
   if self.textKey~=key then
    self.textKey=key;self.textLines={}
    for _,line in ipairs(lines) do for _,piece in ipairs(wrap(line,width)) do self.textLines[#self.textLines+1]=piece end end
-   panel:setScrollHeight(self.statusY+#self.textLines*22+12)
+   panel:setScrollHeight(self.statusY+#self.textLines*lineHeight+12)
   end
-  for i,line in ipairs(self.textLines) do U.Renderer.text(panel,U.Renderer.fit(line,width),12,self.statusY+(i-1)*22,U.Theme.colors.text) end
+  for i,line in ipairs(self.textLines) do U.Renderer.text(panel,U.Renderer.fit(line,width),12,self.statusY+(i-1)*lineHeight,U.Theme.colors.text) end
  end
  self:updateSidebar()
 end
@@ -581,6 +611,7 @@ end
 function E:update()
  if self.closed then return end
  if self.removed or not getSpecificPlayer(self.playerNum) or self.player:isDead() or self.owner and self.owner.removed then self:closeEditor();return end
+ self:workflowTick()
  local retry=self.readRetry
  if retry and getTimestampMs()>=retry.at then self.readRetry=nil;retry.run() end
  if self.validationSource~=self.draft.geometry then
@@ -609,7 +640,7 @@ function E:update()
   end
  end
  if self.closed then return end
- if self.fetch and #self.fetch>0 and getTimestampMs()>=(self.nextFetch or 0) and not self.fetchPending and not self:isBusy() then
+ if self.fetch and #self.fetch>0 and getTimestampMs()>=(self.nextFetch or 0) and not self.fetchPending and not self.listPending and not self:isBusy() then
   local meta=table.remove(self.fetch,1);local generation=self.overlayGeneration;self.fetchPending=true;self.nextFetch=getTimestampMs()+500
   self:request('roomGet',{id=meta.id,roomRevision=meta.revision},function(r)
    if generation~=self.overlayGeneration then return end
@@ -679,7 +710,7 @@ function E.open(num,owner,onClose)
  editor.owner=owner;editor.playerNum=num;editor.player=player;editor.floor=math.floor(player:getZ());editor.cursor={x=math.floor(player:getX()),y=math.floor(player:getY()),z=editor.floor}
  editor.saved={};editor.onClose=onClose;editor:initialise();editor:instantiate();editor:addToUIManager();editor:setWantKeyEvents(true)
  editor:bringToTop()
- editor:load();editor:refresh();if owner then owner:setVisible(false) end;setJoypadFocus(num,editor);active[num]=editor
+ editor:load();editor:startWorkflow();editor:refresh();if owner then owner:setVisible(false) end;setJoypadFocus(num,editor);active[num]=editor
  -- Designation starts empty; structural detection is an explicit preview tool.
  return editor
 end
@@ -687,4 +718,5 @@ if Events then
  for _,event in ipairs({'OnDisconnect','OnMainMenuEnter'}) do if Events[event] then Events[event].Add(function() for _,e in pairs(active) do e:closeEditor() end end) end end
  if Events.OnPlayerDeath then Events.OnPlayerDeath.Add(function(player) for _,e in pairs(active) do if e.player==player then e:closeEditor() end end end) end
 end
+require('B47ANCEDRooms/Workflow')(E)
 return E

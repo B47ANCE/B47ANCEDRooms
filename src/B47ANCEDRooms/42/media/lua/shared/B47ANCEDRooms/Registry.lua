@@ -69,6 +69,14 @@ local function nearby(player,g)
 end
 local function copyRoom(room,player)
  local out=I.copy(room);out.nativeId=nil;out.nativeIds=nil
+ out.policyState='active'
+ if not room.policy or room.policy.mode=='shared' then out.policyState='shared'
+ elseif I.option('DelegatedRooms',true)~=true or not P.active(room) then out.policyState='suspended' end
+ out.roomActions={}
+ for action in pairs(P.actions) do
+  local allowed,reason=P.storage(player,room,action)
+  out.roomActions[action]=out.policyState=='suspended' and 'unknown' or allowed and 'allow' or reason=='denied' and 'deny' or 'unknown'
+ end
  out.roomType=room.roomType or 'unassigned';out.designation=room.designation or 'unassigned';out.canConfigureRoom=P.edit(player,room,'policy')
  out.canEditGeometry=P.edit(player,room,'geometry');out.canAssign=P.edit(player,room,'assignOwner');out.canRelinquish=room.assigned==owner(player)
  if out.canAssign then local h=house(room.safehouse);out.parentMembers={}
@@ -112,7 +120,7 @@ local function currentPermission(player,sq)
 end
 local fields={protocol=true,request=true,id=true,roomRevision=true,revision=true,editKey=true,nonce=true,action=true,
  name=true,rows=true,disconnected=true,confirm=true,ids=true,secondName=true,secondRows=true,
- assigned=true,policy=true,renew=true,owner=true,roomType=true,designation=true} -- owner is ignored; authenticated actor owns creation.
+ assigned=true,policy=true,renew=true,owner=true,roomType=true,designation=true,sourceId=true,sourceRevision=true,copyVisitors=true} -- owner is ignored; authenticated actor owns creation.
 local function plainArgs(args)
  if type(args)~='table' or getmetatable(args) then return false end
  for k in pairs(args) do if not fields[k] then return false end end
@@ -160,7 +168,7 @@ function R.handle(player,command,args)
  local lib,data=library();if not lib then return {status=data} end
  if args.revision~=lib.revision then return {status='conflict'} end
  local pending=0;for _,j in pairs(R.jobs) do if not j.done then pending=pending+1 end end;if pending>=16 then return {status='busy'} end
- local changed,removed={},{};local serial=lib.serial
+ local changed,removed={},{};local serial=lib.serial;local copySource
  local world=lib.world or getRandomUUID()
  if args.id~=nil and (type(args.id)~='string' or #args.id~=73) then return {status='invalid'} end
  local old=args.id and lib.records[args.id]
@@ -184,7 +192,7 @@ function R.handle(player,command,args)
   if not same then action='requestBoundary' end
  end
  if configure and action~='save' and action~='designation' then return {status='RoomDenied'} end
- if action=='designation' or action=='assign' or action=='policy' or action=='relinquish' or action=='requestBoundary' or action=='rejectBoundary' then
+ if action=='copyPolicy' or action=='designation' or action=='assign' or action=='policy' or action=='relinquish' or action=='requestBoundary' or action=='rejectBoundary' then
   if not old then return {status='invalid'} end
   local r=I.copy(old);r.revision=r.revision+1;r.updatedAt=getTimestamp()
   if action=='assign' then
@@ -193,6 +201,16 @@ function R.handle(player,command,args)
    if who~=nil and (not h or type(who)~='string' or #who<1 or #who>256 or who:find('%c') or not (h:getOwner()==who or h:getPlayers():contains(who))) then return {status='RoomDenied'} end
    r.assigned=who;r.policy=who and I.copy(old.policy or {mode='shared',rules={},grants={}}) or {mode='shared',rules={},grants={}};r.policy.grants={}
    if h then r.parentOwner=h:getOwner();r.parentBounds={h:getX(),h:getY(),h:getX2(),h:getY2()} end
+  elseif action=='copyPolicy' then
+   if not P.edit(player,old,'policy') or type(args.copyVisitors)~='boolean' or args.sourceId==old.id then return {status='RoomDenied'} end
+   local source,why=R.resolve(player,args.sourceId,args.sourceRevision)
+   if not integer(args.sourceRevision) or not source then return {status=why or 'invalid'} end
+   if not P.edit(player,source,'policy') then return {status='RoomDenied'} end
+   copySource={id=source.id,revision=source.revision}
+   r.policy=I.copy(source.policy or {mode='shared',rules={},grants={}})
+   if not args.copyVisitors then r.policy.grants=I.copy(old.policy and old.policy.grants or {}) end
+   if r.policy.mode=='private' and (not r.assigned or I.option('DelegatedRooms',true)~=true) then return {status='RoomPolicyInvalid'} end
+   local h=house(r.safehouse);if h then r.parentOwner=h:getOwner();r.parentBounds={h:getX(),h:getY(),h:getX2(),h:getY2()} end
   elseif action=='designation' then
    if not P.edit(player,old,'policy') then return {status='RoomDenied'} end
    r.roomType=roomType;r.designation=designation
@@ -269,10 +287,14 @@ function R.handle(player,command,args)
   for _,tile in ipairs(g.tiles) do work[#work+1]={tile=tile,room=r} end
   if r.pendingBoundary then for _,tile in ipairs(G.normalize(r.pendingBoundary).tiles) do work[#work+1]={tile=tile,room=r} end end
  end
+ if copySource then
+  local source=lib.records[copySource.id];local validation={id=source.id,safehouse=source.safehouse}
+  for _,tile in ipairs(geometry(source).tiles) do work[#work+1]={tile=tile,room=validation} end
+ end
  if count>128 or total>16384 or not integer(serial) or serial>=10000000 or not integer(lib.revision+1) then return {status='RoomTooLarge'} end
  -- A deletion still validates access to the old room cooperatively.
  if action=='delete' then local validation={id=old.id,safehouse=old.safehouse};for _,t in ipairs(G.normalize(old.rows).tiles) do work[#work+1]={tile=t,room=validation} end end
- local j={nonce=args.nonce,editKey=args.editKey,world=world,revision=lib.revision,changed=changed,removed=removed,serial=serial,work=work,index=1,time=getTimestampMs(),original=lib,action=action,configure=configure or action=='designation'}
+ local j={nonce=args.nonce,editKey=args.editKey,world=world,revision=lib.revision,changed=changed,removed=removed,serial=serial,work=work,index=1,time=getTimestampMs(),original=lib,action=action,configure=configure or action=='designation' or action=='policy' or action=='copyPolicy',copySource=copySource}
  ticket.used=true;R.jobs[player]=j;return {status='pending'}
 end
 function R.tick()
@@ -300,6 +322,10 @@ function R.tick()
   local ok,err=pcall(function()
    if not connected(player) or not player:getCurrentSquare() or (player.isDead and player:isDead()) then finish(j,'cancelled');return end
    local lib,data=library();if not lib or lib.revision~=j.revision then finish(j,'conflict');return end
+   if j.copySource then
+    local source=lib.records[j.copySource.id]
+    if not source or source.revision~=j.copySource.revision or not nearby(player,geometry(source)) or not P.edit(player,source,'policy') then finish(j,'RoomDenied');return end
+   end
    for id in pairs(j.removed) do if not lib.records[id] or not member(player,lib.records[id]) then finish(j,'RoomDenied');return end end
    for id in pairs(j.changed) do if lib.records[id] and not member(player,lib.records[id]) then finish(j,'RoomDenied');return end end
    for id in pairs(j.changed) do
@@ -333,7 +359,10 @@ function R.tick()
     -- No native calls or yields between revision check and replacing this library.
     local records={};for id,r in pairs(lib.records) do if not j.removed[id] then records[id]=r end end
     for id,r in pairs(j.changed) do records[id]=r end
-    for _,r in pairs(j.changed) do local ok,reason=P.validate(r,records,j.removed);if not ok then finish(j,reason);return end end
+    for _,r in pairs(j.changed) do
+     if r.policy and r.policy.mode=='private' and I.option('DelegatedRooms',true)~=true then finish(j,'RoomPolicyDisabled');return end
+     local ok,reason=P.validate(r,records,j.removed);if not ok then finish(j,reason);return end
+    end
     data.customRooms={schema=2,world=j.world,revision=lib.revision+1,serial=j.serial,records=records}
     j.done=true;j.result={status='ok',revision=lib.revision+1}
     if B47ANCEDRooms.changed then B47ANCEDRooms.changed(lib.revision+1) end

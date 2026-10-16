@@ -1,6 +1,6 @@
 # Standalone Rooms API, authority and acceptance
 
-Project Version: 0.2.0-dev.4
+Project Version: 0.2.0-dev.5
 
 ## Scope and compatibility
 
@@ -25,6 +25,7 @@ Room API version 1, network protocol 1 and registry schema 2 are independent of 
 
 Read methods on the authoritative Lua side:
 
+- `copyPolicy(player,args)` and policyCopy=1 add server-validated source/destination permission copying; roomGet adds policyState/roomActions snapshots. See [WORKFLOW_COMPLETION.md](WORKFLOW_COMPLETION.md) for authority, wire fields, live editor workflows and current acceptance gates.
 - `capabilities()` describes API/version and supported boundaries, including roomDesignations=1 and storageScopes=1.
 - `roomTypes`, `setDesignation`, `storageScopes`, `storageGeometry`, `storageTiles` and configureRoom metadata authorization are documented in [ROOM_DESIGNATIONS.md](ROOM_DESIGNATIONS.md). They use designated UUIDs only; target-based storage queries do not depend on editor range.
 - Room metadata adds roomType/designation defaults and exact floor lists; edit/permission snapshots expose canConfigureRoom. These do not grant inventory actions.
@@ -37,7 +38,7 @@ Read methods on the authoritative Lua side:
 
 Client entry points `request(playerNum,command,args,callback)` and `openEditor(playerNum,parent?,onClose?)` submit intent/use local presentation. Client calls cannot mutate the server registry.
 
-Mutation helpers `beginEdit`, `change`, `create`, `rename`, `editGeometry`, `delete`, `merge`, `split`, `assignOwner`, `revokeOwner`, `setPolicy`, `requestBoundary`, `approveBoundary`, `rejectBoundary`, `relinquish` are server-side operations using Registry validation. A helper does not bypass leases/revisions or become a synchronous promise of persistence.
+Mutation helpers `beginEdit`, `change`, `create`, `rename`, `editGeometry`, `delete`, `merge`, `split`, `assignOwner`, `revokeOwner`, `setPolicy`, `copyPolicy`, `requestBoundary`, `approveBoundary`, `rejectBoundary`, `relinquish` are server-side operations using Registry validation. A helper does not bypass leases/revisions or become a synchronous promise of persistence.
 
 ## Protocol and writes
 
@@ -84,6 +85,6 @@ Server sandbox controls: Enabled (true); RoomTileLimit (64–4096, default 1024)
 
 [TESTED offline Windows/Lua 5.1] `python tests/run_tests.py`: syntax, standalone namespace, no inventory mutation, manifest/case/localization, geometry/edit/replay/concurrency/corruption, structural detection, ownership/action grants/native denial, parent changes, overlap, migration, preserved legacy override reload/edits, rejected native IDs/restore/import, empty drafts/current-building filtering, designated-only cleaning scopes, consecutive distinct saves without reopening, create/edit separation, single-action routine create/rename, retained selected edits/visitor context, contextual sidebar/advanced controls, dirty Done/Escape and destructive/incomplete review, pending input guards, immediate/polled acknowledgements, failed-save draft retention, fresh lease/list and stale/read-reply recovery, editor mouse/controller lifecycle and dedicated bootstrap/transport. Native-shaped fixtures are disposable and do not certify actual Lua/Java networking.
 
-`python scripts/check_versions.py` checks current mirrors. Historical 0.2.0-dev.1 packaging/distribution checks passed under explicit publication authorization; WORKSHOP_DESIGNATED_PUBLICATION.md retains that evidence. The initial 0.2.0-dev.2 source checkpoint 6453148 was blocked only by the old .1 ZIP. The subsequent explicit publish request authorized .2 packaging/publication, recorded in WORKSHOP_KEEP_OPEN_PUBLICATION.md. For current .4 source-only editor/designation work, source version mirrors match but the unchanged published .2 ZIP fails the filename/embedded-version artifact checks. See EDITOR_FLOW.md and ROOM_DESIGNATIONS.md for current offline evidence, authority/persistence review and native gates; no new packaging/publication is authorized. `python scripts/build_dev.py` builds a development-only ZIP after offline checks; `python scripts/check_versions.py --release` validates artifact version consistency, not gameplay G8. Production manifests and source/ZIP hashes are recorded separately. B42 common/AnimSets/actiongroups empty roots are explicit package entries. No host Python/Lupa, test code, credentials or custom Java is packaged. The user-supplied Rooms thumbnail takes precedence for the next Workshop preview; the icon/poster retain exact verified team fallback branding. See artwork/README.md for source/export provenance and publication status.
+`python scripts/check_versions.py` checks current mirrors. Historical 0.2.0-dev.1 packaging/distribution checks passed under explicit publication authorization; WORKSHOP_DESIGNATED_PUBLICATION.md retains that evidence. The initial 0.2.0-dev.2 source checkpoint 6453148 was blocked only by the old .1 ZIP. The subsequent explicit publish request authorized .2 packaging/publication, recorded in WORKSHOP_KEEP_OPEN_PUBLICATION.md. For current .5 source-only workflow development, source version mirrors match but the unchanged published .2 ZIP fails the filename/embedded-version artifact checks. See WORKFLOW_COMPLETION.md, EDITOR_FLOW.md and ROOM_DESIGNATIONS.md for current offline evidence, authority/persistence review and native gates; no new packaging/publication is authorized. `python scripts/build_dev.py` builds a development-only ZIP after offline checks; `python scripts/check_versions.py --release` validates artifact version consistency, not gameplay G8. Production manifests and source/ZIP hashes are recorded separately. B42 common/AnimSets/actiongroups empty roots are explicit package entries. No host Python/Lupa, test code, credentials or custom Java is packaged. The user-supplied Rooms thumbnail takes precedence for the next Workshop preview; the icon/poster retain exact verified team fallback branding. See artwork/README.md for source/export provenance and publication status.
 
 [RUNTIME GATE] Actual native UI/structural detection/designation behavior, persistent native save/load and two-remote-client dedicated tests are NOT TESTED. Required acceptance includes parent/delegate/guest and native denial, source/destination policies, concurrent edits/sorts, revocation before/after dispatch, container relocation, reconnect/restart and item conservation. G7 NOT TESTED/BLOCKED; stable G8 BLOCKED. Development packaging does not deploy, publish or launch anything.

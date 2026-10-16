@@ -3,7 +3,7 @@
 ## Overview
 Standalone room designation and server-owned room permissions for Project Zomboid Build 42.21.0.
 
-Version 0.2.0-dev.4.
+Version 0.2.0-dev.5.
 
 MP testing build - dedicated multiplayer NOT TESTED
 
@@ -18,6 +18,8 @@ Fixes room outlines drifting instead of scaling when zooming. Outlines now follo
 Room Type and Storage Role add 14 room labels plus Primary, Secondary or Unassigned organization metadata. Save choices with the room. Existing rooms default to Unassigned. Select Room picks loaded saved outlines without drawing; overlapping rooms offer a choice. The building list groups actual floors, shows type/role and prioritizes active-floor overlays. Other rooms remain available through the list.
 
 These labels do not move items, set quotas or allocate storage automatically. Consumer routing integration remains untested.
+
+Live server-change updates protect dirty drafts and offer explicit conflict recovery. Search and combine room type, storage role and floor filters. Read saved permission summaries and copy rules between authorized rooms, choosing whether to replace visitor grants. Optionally repeat the last saved type/role for consecutive rooms. Save and Done stay in a fixed footer while details scroll. Native acceptance remains pending.
 
 ## Features
 - Designate rooms from the world context menu using explicit structural previews, rectangles, paint/erase and explicit floors. Preview, name, undo/redo, merge/split, then confirm changes.

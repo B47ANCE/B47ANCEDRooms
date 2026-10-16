@@ -1,9 +1,9 @@
 # Room types, storage roles and navigation
 
-Project Version: 0.2.0-dev.4
+Project Version: 0.2.0-dev.5
 
 [VERIFIED source] MINOR-scope compatible feature additions within the existing
-unreleased 0.2 line: 0.2.0-dev.3 to 0.2.0-dev.4; expected eventual release 0.2.0
+unreleased 0.2 line: 0.2.0-dev.3 to 0.2.0-dev.5; expected eventual release 0.2.0
 subject to all gates. General API 1, protocol 1 and registry schema 2 remain.
 The earlier team-owned designation PR #2 at f9a31f2 supplied the planned catalog
 and API shape. This implementation adapts those concepts to designated UUIDs
@@ -12,7 +12,8 @@ only; it does not merge that branch or restore vanilla room definitions.
 ## Using the editor
 
 - Draw a new room, enter its name, use the type/storage button to choose labels,
-  then Save & Next. The next blank room starts with Unassigned labels.
+  then Save & Next. The next blank room starts with Unassigned labels unless the local
+  Repeat last saved type/role toggle is enabled for this editor session.
 - Select Room enters a dedicated selection mode. Mouse click or controller A
   selects a loaded saved outline without painting. Names under the cursor appear
   in the sidebar. Overlaps open an explicit choice; selecting another room or
@@ -44,7 +45,9 @@ percentages, capacities, quotas, automatic allocation, transfers or cleaning
 priority. Primary/Secondary interpretation belongs to a cooperating consumer.
 Quartermaster is neither modified nor integration-tested by this iteration.
 
-Capabilities add `roomDesignations=1` and `storageScopes=1`. Authoritative APIs:
+Capabilities include `roomDesignations=1`, `storageScopes=1` and `policyCopy=1`.
+Current live/conflict/search/summary/repeated-entry and permission-copy behavior
+is documented in WORKFLOW_COMPLETION.md. Authoritative APIs:
 
 - `roomTypes()`: detached stable type and role lists.
 - `setDesignation(player,args)`: normal leased/revisioned `designation` mutation;

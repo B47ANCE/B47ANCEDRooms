@@ -16,7 +16,7 @@ for p in SOURCE.rglob('*.lua'):
     assert not re.search(r"require\s*['\"]B47ANCEDQuartermaster",code),p
     assert not re.search(r':(?:getRoomDef|getRoom|getRooms)\s*\(',code),('Vanilla room dependency',p)
     if '/shared/' in p.as_posix():assert not re.search(r':(?:AddItem|addItem|Remove|removeItemWithID)\s*\(',code),p
-for name in ['test_registry.lua','test_detection.lua','test_permissions.lua','test_migration.lua','test_designated_rooms.lua','test_designations.lua','test_editor.lua','test_dialog.lua','test_network.lua','test_cleaning.lua']:
+for name in ['test_registry.lua','test_detection.lua','test_permissions.lua','test_policy_copy.lua','test_migration.lua','test_designated_rooms.lua','test_designations.lua','test_editor.lua','test_dialog.lua','test_network.lua','test_cleaning.lua']:
     path=ROOT/'tests'/name
     runtime().execute(path.read_text(encoding='utf-8'))
 english=json.loads((SOURCE/'42/media/lua/shared/Translate/EN/UI.json').read_text(encoding='utf-8'))

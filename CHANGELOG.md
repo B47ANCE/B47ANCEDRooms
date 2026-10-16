@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0-dev.5]
+- Compatible MINOR-scope workflow additions within the unreleased 0.2 line: live refresh with protected conflict recovery, name/type/role/floor filtering, policy summaries, optional repeated type/role choices and authoritative permission copying.
+- Server-owned gameplay state, designated UUIDs, vanilla building detection, API/protocol 1 and schema 2 remain. No inventory routing is added to Rooms.
+- Development checkpoint: full offline Lua 5.1 source/regression suite PASS; native UI, real save/load and dedicated G7 NOT TESTED; stable G8 BLOCKED. No packaging/deployment/publication included.
+
 ## [0.2.0-dev.4]
 - Compatible feature checkpoint within the 0.2 prerelease line: direct outline selection, floor-grouped navigation, room types and Primary/Secondary/Unassigned storage metadata.
 - Custom designated UUIDs only; existing records default to Unassigned without read-time save rewrites. Server validation, permissions, revisions and cooperative commits remain authoritative. No inventory routing or new gameplay settings.

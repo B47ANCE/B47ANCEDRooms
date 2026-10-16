@@ -1,6 +1,6 @@
 # Cleaning consumer API
 
-Project Version: 0.2.0-dev.4
+Project Version: 0.2.0-dev.5
 
 This is the Rooms side of the authorized offline Auto Clean integration. Rooms
 uses vanilla physical building detection plus player-designated room geometry and owns cleaning permission. Vanilla room definitions are never read. It never searches
@@ -97,8 +97,8 @@ native interact denial, validated defaults/bounds, settings revocation,
 disconnect/expiry and client denial. Syntax, case, inventory, localization,
 registry/network/migration and existing editor tests remain included.
 
-Cleaning geometry/permission behavior is unchanged by the 0.2.0-dev.4 room
-metadata/navigation additions; types and storage roles do not change clean priority; the full current offline suite, including cleaning, passes. Source
+Cleaning geometry/permission behavior is unchanged by the 0.2.0-dev.5 room
+metadata/navigation/workflow additions; types and storage roles do not change clean priority; the full current offline suite, including cleaning, passes. Source
 version mirrors match; the preserved published .2 ZIP blocks current artifact
 version checks until authorized packaging. WORKSHOP_KEEP_OPEN_PUBLICATION.md
 and WORKSHOP_DESIGNATED_PUBLICATION.md retain their historical distribution
@@ -109,6 +109,6 @@ No current cross-repository or native integration result is claimed.
 
 Native UI, fluid/inventory transactions, synchronization, real save/load and
 dedicated behavior are **NOT TESTED**. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
-The .1/.2 checkpoints were explicitly published for testing. The current .4 development
+The .1/.2 checkpoints were explicitly published for testing. The current .5 development
 request does not authorize packaging, deployment or upload. No game/server launch
 is included. Historical distribution does not establish current runtime proof.

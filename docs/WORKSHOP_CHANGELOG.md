@@ -1,11 +1,12 @@
-# Version 0.2.0-dev.4
+# Version 0.2.0-dev.5
 
 MP testing build - dedicated multiplayer NOT TESTED
 
 Development iteration, not uploaded by this task.
 
-- Select saved room outlines without drawing; overlapping rooms offer a choice and names under the cursor appear in the sidebar.
-- Group the building room list by actual floor, show type/storage role and prioritize current-floor outlines.
-- Add 14 room types and Primary, Secondary or Unassigned storage labels, saved with ordinary room edits. Existing rooms default to Unassigned.
-- Server-validated persistence and consumer queries use designated rooms only. No automatic inventory routing or quotas.
-- Offline source/regression checks pass. Native UI, save/load, paired integration and dedicated acceptance remain NOT TESTED; G7 and stable G8 BLOCKED.
+- Live updates refresh clean state and preserve dirty drafts with explicit conflict recovery, including remote deletion.
+- Add name/type/role/floor search and filters, saved policy summaries, optional repeated type/role setup and server-validated permission copying.
+- Rules-only copy keeps destination visitors; the explicit alternative replaces grants. Both records' authority and revisions are checked.
+- Keep Save/Done visible in a fixed footer; scale list and summary spacing with fonts.
+- Retain custom-room designation, floor groups, outline selection, room types and Primary/Secondary metadata. No automatic inventory routing or quotas.
+- Full offline source/regression checks pass. Native UI, real save/load, paired integration and dedicated G7 remain NOT TESTED; stable G8 BLOCKED.
