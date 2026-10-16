@@ -97,13 +97,16 @@ native interact denial, validated defaults/bounds, settings revocation,
 disconnect/expiry and client denial. Syntax, case, inventory, localization,
 registry/network/migration and existing editor tests remain included.
 
-`python scripts/check_versions.py --root .` confirms synchronized source mirrors
-but fails on the preserved published 0.1.0-dev.3 ZIP in dist/current. Packaging
-was not authorized for this source iteration. No artifact was relabeled.
+`python scripts/check_versions.py --root . --release` passes after the explicit
+publish request authorized packaging. The prior .3 package/provenance/checksum
+are preserved with exact hashes under the new release folder, without relabeling.
+See WORKSHOP_DESIGNATED_PUBLICATION.md for package and distribution evidence.
 Quartermaster source/integration is outside this Rooms-only iteration; existing
 consumers must accept the designated-only scope and handle the no-rooms status.
 No current cross-repository or native integration result is claimed.
 
 Native UI, fluid/inventory transactions, synchronization, real save/load and
 dedicated behavior are **NOT TESTED**. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
-No game/server launch, deployment or publication occurred in this iteration.
+The source checkpoint did not deploy or publish. A subsequent explicit publish
+request authorizes the labelled Workshop test update; no local SP deployment or
+game/server launch is included. Distribution does not establish runtime behavior.

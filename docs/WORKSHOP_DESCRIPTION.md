@@ -37,7 +37,7 @@ Safehouse metadata ownership does not automatically bypass private gameplay perm
 ## Source Code & Development
 GitHub: https://github.com/B47ANCE/B47ANCEDRooms
 
-Current API/protocol 1 (`nativeOverrides=false`, `designatedRooms=true`), cleaning capability 1 with designated-room scope and room registry schema 2 are independent of the project version. No stable-release readiness claim is made. Dedicated G7 remains BLOCKED / NOT TESTED; stable-release G8 BLOCKED.
+Current API/protocol 1 (nativeOverrides=false, designatedRooms=true), cleaning capability 1 with designated-room scope and room registry schema 2 are independent of the project version. No stable-release readiness claim is made. Dedicated G7 remains BLOCKED / NOT TESTED; stable-release G8 BLOCKED.
 
 ## Known Issues
 Policies apply at supported mod integration checks. They do not lock unrelated vanilla transfers, entry, doors, building or destruction, and do not intercept every final vanilla mutation.

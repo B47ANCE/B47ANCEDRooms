@@ -8,4 +8,4 @@ Existing saved overrides retain their geometry, UUIDs, ownership and permissions
 
 Cleaning scopes now cover designated tiles within the selected physical building. Undesignated areas are excluded; an empty building requires room designation. Safehouse and server authority checks remain.
 
-Offline source tests pass. Actual native UI/save-load, paired consumer integration and dedicated multiplayer remain NOT TESTED. G7 and stable G8 BLOCKED. This text is prepared for a future authorized upload; the live Workshop item remains 0.1.0-dev.3.
+Offline source tests pass. Actual native UI/save-load, paired consumer integration and dedicated multiplayer remain NOT TESTED. G7 and stable G8 BLOCKED. This explicitly authorized update is distributed for testing on the existing Rooms Workshop item. Upload/download success does not prove in-game behavior.

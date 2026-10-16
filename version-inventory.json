@@ -29,6 +29,10 @@
     {
       "path": "src/B47ANCEDRooms/42/media/lua/shared/B47ANCEDRooms/Identity.lua",
       "pattern": "version='(?P<version>[0-9][^']*)'"
+    },
+    {
+      "path": "docs/WORKSHOP_DESIGNATED_PUBLICATION.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
     }
   ],
   "changelog": {
@@ -76,6 +80,10 @@
     {
       "reference": "docs/WORKSHOP_UI_PUBLICATION.md and docs/UI_AUDIT.md",
       "reason": "Published 0.1.0-dev.3 UI/distribution evidence; not validation of custom-room-only development."
+    },
+    {
+      "reference": "dist/workshop-publish/0.2.0-dev.1-designated/previous-current and preservation-ledger.json",
+      "reason": "Published 0.1.0-dev.3 package, checksum and provenance preserved by exact hashes during authorized 0.2 test upload preparation; no deletion or relabeling."
     }
   ]
 }
