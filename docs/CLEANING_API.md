@@ -99,15 +99,16 @@ registry/network/migration and existing editor tests remain included.
 
 Cleaning geometry/permission behavior is unchanged by the 0.2.0-dev.2 editor UI
 change; the full current offline suite, including cleaning, passes. Current source
-version mirrors match; artifact checks are blocked by the unchanged published .1
-ZIP. WORKSHOP_DESIGNATED_PUBLICATION.md retains historical .1 packaging and
-distribution evidence; it is not current runtime proof.
+version mirrors match. After explicit publish authorization, the old .1 package
+was preserved and the current .2 source/artifact version checks pass. See
+WORKSHOP_KEEP_OPEN_PUBLICATION.md for current distribution status;
+WORKSHOP_DESIGNATED_PUBLICATION.md retains historical .1 evidence.
 Quartermaster source/integration is outside this Rooms-only iteration; existing
 consumers must accept the designated-only scope and handle the no-rooms status.
 No current cross-repository or native integration result is claimed.
 
 Native UI, fluid/inventory transactions, synchronization, real save/load and
 dedicated behavior are **NOT TESTED**. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
-The .1 checkpoint was explicitly published for testing. The current .2 UI request
-does not authorize packaging, deployment or upload. No game/server launch is
-included. Historical distribution does not establish current runtime behavior.
+The .1 checkpoint was explicitly published for testing. A subsequent explicit
+publish request authorizes the .2 Workshop test update. No local SP deployment
+or game/server launch is included. Distribution does not establish runtime proof.
