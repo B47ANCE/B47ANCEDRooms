@@ -1,6 +1,6 @@
 # Cleaning consumer API
 
-Project Version: 0.2.0-dev.2
+Project Version: 0.2.0-dev.3
 
 This is the Rooms side of the authorized offline Auto Clean integration. Rooms
 uses vanilla physical building detection plus player-designated room geometry and owns cleaning permission. Vanilla room definitions are never read. It never searches
@@ -97,18 +97,18 @@ native interact denial, validated defaults/bounds, settings revocation,
 disconnect/expiry and client denial. Syntax, case, inventory, localization,
 registry/network/migration and existing editor tests remain included.
 
-Cleaning geometry/permission behavior is unchanged by the 0.2.0-dev.2 editor UI
-change; the full current offline suite, including cleaning, passes. Current source
-version mirrors match. After explicit publish authorization, the old .1 package
-was preserved and the current .2 source/artifact version checks pass. See
-WORKSHOP_KEEP_OPEN_PUBLICATION.md for current distribution status;
-WORKSHOP_DESIGNATED_PUBLICATION.md retains historical .1 evidence.
+Cleaning geometry/permission behavior is unchanged by the 0.2.0-dev.3 editor UI
+refinement; the full current offline suite, including cleaning, passes. Source
+version mirrors match; the preserved published .2 ZIP blocks current artifact
+version checks until authorized packaging. WORKSHOP_KEEP_OPEN_PUBLICATION.md
+and WORKSHOP_DESIGNATED_PUBLICATION.md retain their historical distribution
+evidence, not current UI or multiplayer verification.
 Quartermaster source/integration is outside this Rooms-only iteration; existing
 consumers must accept the designated-only scope and handle the no-rooms status.
 No current cross-repository or native integration result is claimed.
 
 Native UI, fluid/inventory transactions, synchronization, real save/load and
 dedicated behavior are **NOT TESTED**. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
-The .1 checkpoint was explicitly published for testing. A subsequent explicit
-publish request authorizes the .2 Workshop test update. No local SP deployment
-or game/server launch is included. Distribution does not establish runtime proof.
+The .1/.2 checkpoints were explicitly published for testing. The current .3 UI
+request does not authorize packaging, deployment or upload. No game/server launch
+is included. Historical distribution does not establish current runtime proof.

@@ -31,7 +31,7 @@
       "pattern": "version='(?P<version>[0-9][^']*)'"
     },
     {
-      "path": "docs/WORKSHOP_KEEP_OPEN_PUBLICATION.md",
+      "path": "docs/EDITOR_FLOW.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
     }
   ],
@@ -92,6 +92,10 @@
     {
       "reference": "dist/workshop-publish/0.2.0-dev.2-keep-open/previous-current and preservation-ledger.json",
       "reason": "Published 0.2.0-dev.1 ZIP, checksum and provenance preserved by exact hashes during explicitly authorized .2 Workshop test upload preparation; no deletion or relabeling."
+    },
+    {
+      "reference": "docs/WORKSHOP_KEEP_OPEN_PUBLICATION.md",
+      "reason": "Published 0.2.0-dev.2 distribution/keep-open evidence, not validation of the subsequent contextual editor flow."
     }
   ]
 }

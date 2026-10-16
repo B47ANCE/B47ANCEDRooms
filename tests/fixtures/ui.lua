@@ -48,6 +48,9 @@ function Widget:setTooltip(v) self.tooltip=v end
 function Widget:setText(v) self.text=v end
 function Widget:getInternalText() return self.text or '' end
 function Widget:setMaxTextLength(v) end
+function Widget:setEditable(v) self.editable=v end
+function Widget:focus() self.focused=true end
+function Widget:unfocus() self.focused=false end
 function Widget:clear() self.items={}; self.count=0; self.selected=1 end
 function Widget:addItem(text,data)
     local row={text=text,item=data,height=self.itemheight,index=#self.items+1}

@@ -1,9 +1,9 @@
-# Version 0.2.0-dev.2
+# Version 0.2.0-dev.3
 
 MP testing build - dedicated multiplayer NOT TESTED
 
-Keep Designate Room open after a successful server-confirmed save. Refresh the saved-room list and start a blank draft on the same floor, ready for the next room. Close the window yourself when finished.
+Streamline designation: Save & Next creates a room and advances to a blank same-floor draft. Save Changes retains/reloads the selected room. Routine create/rename uses one action; destructive geometry, deletion, merge/split, incomplete/disconnected previews and permission/ownership changes retain confirmation.
 
-Immediate and polled save acknowledgements use the same flow. Rejected saves preserve the draft; stale replies cannot overwrite the next room's refreshed list, lease or overlays. Room geometry, permissions, server authority and save/API formats are unchanged.
+Done protects unsaved work. The sidebar shows controls relevant to the current state, advanced operations start collapsed, and visitor fields appear only while managing visitors. Pending writes protect inputs, and failed reads provide recovery controls.
 
-Offline source tests pass, including consecutive distinct room saves in one window. Actual UI and dedicated multiplayer remain NOT TESTED; G7 and stable G8 BLOCKED. This explicitly authorized Workshop update is distributed for testing on the existing Rooms item. Upload/download success does not prove in-game behavior.
+Offline tests pass. Actual UI/controller/focus and dedicated multiplayer remain NOT TESTED; G7 and stable G8 BLOCKED. Development notes only: no upload is included in this UI request. The published Workshop build remains 0.2.0-dev.2.

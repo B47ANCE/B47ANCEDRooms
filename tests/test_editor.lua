@@ -91,8 +91,8 @@ editor:onJoypadDown(Joypad.AButton);editor:onJoypadDirRight();editor:onJoypadDow
 assert(editor.draft.geometry.count==0,'controller rectangle did not match mouse geometry')
 editor.draft:undo();assert(editor.draft.geometry.count==2)
 editor.draft:redo();assert(editor.draft.geometry.count==0);editor.draft:undo()
-editor.nameEntry:setText('Workshop');editor:submit();assert(confirmation and not editor.submission)
-confirmation.callback('accept');assert(editor.submission)
+editor.nameEntry:setText('Workshop');confirmation=nil;editor:submit()
+assert(editor.submission and not confirmation,'routine create still required an extra confirmation')
 Q.Registry.tick();f.advance(600);editor:update()
 assert(not editor.closed and not editor.capture and not p:isVisible() and closes==0,'successful save ended the editor session')
 assert(editor.record==nil and editor.draft.geometry.count==0 and #editor.draft.history==0,'successful save did not start a blank room')
@@ -103,7 +103,7 @@ assert(editor.revision==1 and #editor.metadata==1 and editor.metadata[1].name=='
 local firstId=editor.metadata[1].id
 -- Save the next room through the same live editor and obtain a distinct identity.
 f.advance(3000);editor:apply({x=2,y=0,z=0},{x=2,y=0,z=0});editor.nameEntry:setText('Pantry')
-editor:submit();confirmation.callback('accept');assert(editor.submission)
+editor:submit();assert(editor.submission)
 Q.Registry.tick();f.advance(600);editor:update()
 lib=ModData.getOrCreate('B47ANCEDRooms').customRooms
 assert(not editor.closed and not p:isVisible() and closes==0 and lib.revision==2)
@@ -114,7 +114,7 @@ editor:closeEditor();editor:closeEditor()
 assert(p:isVisible() and closes==1 and p.selectedItems==selections and selections.keep,'explicit close failed to restore parent exactly once')
 local before=lib
 f.advance(3000);local pending=E.open(0,p);pending.detection=nil;pending.draft:set(assert(Q.Geometry.normalize({{0,0,0,0}})));pending.nameEntry:setText('Cancelled')
-pending:submit();confirmation.callback('accept');assert(pending.submission)
+pending:submit();assert(pending.submission)
 pending:closeEditor();Q.Registry.tick()
 assert(ModData.getOrCreate('B47ANCEDRooms').customRooms==before,'closing pending editor committed later')
 -- Late reads and externally removed UI cannot resurrect previews or capture.
@@ -144,7 +144,7 @@ live:update();assert(#gets==1 and live.fetchPending)
 local oldOverlay=gets[1]
 live.floor=1;live.cursor.z=1;live.draft:set(assert(Q.Geometry.normalize({{1,0,0,0}})));live.nameEntry:setText('Upstairs')
 local originalDraft=live.draft
-live:submit();confirmation.callback('accept');listReply(2,10)
+live:submit();listReply(2,10)
 assert(#changes==1);changes[1]({status='ok',revision=11})
 assert(not live.closed and live.draft~=originalDraft and live.draft.geometry.count==0 and live.floor==1)
 assert(live.revision==nil and live.editKey==nil,'next save could reuse a consumed lease')
@@ -156,7 +156,7 @@ assert(live.revision==11 and live.metadata[1].id=='new')
 -- The same acknowledgement cannot reset a newly started draft a second time.
 live.draft:set(assert(Q.Geometry.normalize({{1,0,1,1}})));local nextDraft=live.draft
 changes[1]({status='ok',revision=11});assert(live.draft==nextDraft and live.draft.geometry.count==1)
-live.nameEntry:setText('Keep on error');live:submit();confirmation.callback('accept');listReply(4,11)
+live.nameEntry:setText('Keep on error');live:submit();listReply(4,11)
 changes[2]({status='RoomDenied'})
 assert(not live.closed and live.draft==nextDraft and live.nameEntry:getInternalText()=='Keep on error' and not live.submission)
 -- A newer list wins even when an earlier refresh finishes later.
@@ -178,4 +178,88 @@ guarded:onRightMouseDown();assert(guarded.first==first,'right click changed prev
 guarded:onKeyPress(Keyboard.KEY_ESCAPE);guarded:onJoypadDown(Joypad.BButton);guarded.worldFocus=true;guarded:onJoypadDirRight()
 assert(raised==2 and not guarded.closed and guarded.cursor.x==0 and guarded.draft.geometry==guardedGeometry,'editor input escaped modal guard')
 guarded:closeEditor();guarded:closeEditor();assert(destroyed==1 and not guarded.b47Dialog,'owner teardown leaked or destroyed popup twice')
-print('PASS OFFLINE room editor: zoom/camera/viewport projection, mouse/controller previews, consecutive distinct saves in one window, immediate/polled completion, refreshed leases/metadata, failure and stale-reply isolation, explicit close/cancellation, modal guards and parent/focus cleanup')
+-- The streamlined sidebar separates routine creation, editing and advanced work.
+f.advance(3000);local flow=E.open(0,p)
+flow:updateSidebar()
+assert(flow.buttons.Save.title==getText('UI_B47Rooms_RoomSaveNext') and flow.buttons.Done.title==getText('UI_B47Rooms_Done'))
+assert(not flow.accountEntry:isVisible() and not flow.buttons.RoomPermissions:isVisible())
+assert(not flow.buttons.RoomDelete:isVisible() and not flow.buttons.RoomDuplicate:isVisible() and not flow.buttons.RoomClear:isVisible())
+assert(not flow.buttons.Save.enable and flow.buttons.Done.enable)
+local meta;for _,room in ipairs(flow.metadata) do if room.id==firstId then meta=room end end;assert(meta)
+flow:select(meta);flow:updateSidebar()
+assert(flow.record.id==firstId and flow.buttons.RoomPermissions:isVisible() and not flow.accountEntry:isVisible())
+assert(flow.buttons.Save.title==getText('UI_B47Rooms_RoomSaveChanges'))
+flow.buttons.RoomAdvanced.onclick(flow);assert(flow.buttons.RoomDelete:isVisible() and flow.buttons.RoomDuplicate:isVisible())
+local expandedY=flow.statusY
+flow.buttons.RoomAdvanced.onclick(flow);assert(not flow.buttons.RoomDelete:isVisible())
+assert(flow.statusY<expandedY,'collapsed controls left empty sidebar rows')
+for _,row in ipairs(flow.joypadButtonsY) do for _,control in ipairs(row) do assert(control:isVisible(),'hidden controls entered controller navigation') end end
+flow.nameEntry:setText('Workshop Renamed');confirmation=nil;flow:submit()
+assert(flow.submission and not confirmation,'routine rename needed a redundant modal')
+assert(not flow.nameEntry.editable and not flow.buttons.RoomTools.enable,'pending write left mutable controls enabled')
+local submittedGeometry=flow.draft.geometry;flow:apply({x=0,y=1,z=0},{x=0,y=1,z=0})
+assert(flow.draft.geometry==submittedGeometry,'pending write allowed new preview edits')
+for _=1,20 do Q.Registry.tick();f.advance(600);flow:update();if not flow:isBusy() then break end end
+assert(flow.record and flow.record.id==firstId and flow.record.name=='Workshop Renamed','edit reset selection or kept stale room metadata')
+assert(flow.draft.geometry.count==2 and not flow:isDirty() and flow.status==getText('UI_B47Rooms_RoomSaved'))
+assert(ModData.getOrCreate('B47ANCEDRooms').customRooms.records[firstId].name=='Workshop Renamed')
+flow:detect();flow:updateSidebar();assert(flow.detection and not flow.buttons.Save.enable)
+flow:submit();assert(not flow.submission,'unfinished detection was submitted as a complete preview')
+flow.detection=nil
+-- Geometry replacements still require review; cancel leaves the edit intact.
+flow:apply({x=0,y=1,z=0},{x=0,y=1,z=0});confirmation=nil;flow:submit()
+assert(confirmation and not flow.submission);confirmation.callback('cancel');assert(flow:isDirty() and flow.record.id==firstId)
+flow:requestClose();confirmation.callback('cancel');assert(not flow.closed and flow:isDirty())
+flow:requestClose();confirmation.callback('accept');assert(flow.closed and p:isVisible())
+-- Done/Escape also protect a new draft; incomplete previews never quick-save.
+f.advance(3000);local draftEditor=E.open(0,p);draftEditor:apply({x=2,y=0,z=0},{x=2,y=0,z=0})
+draftEditor:onKeyPress(Keyboard.KEY_ESCAPE);assert(confirmation and not draftEditor.closed)
+confirmation.callback('cancel');draftEditor.incomplete='RoomUnloaded';draftEditor:submit()
+assert(confirmation and not draftEditor.submission);confirmation.callback('cancel')
+draftEditor.incomplete=nil;draftEditor:submit();assert(draftEditor.submission)
+local beforeCancel=ModData.getOrCreate('B47ANCEDRooms').customRooms
+draftEditor:requestClose();confirmation.callback('cancel');assert(draftEditor.submission and not draftEditor.closed)
+draftEditor:requestClose();confirmation.callback('accept');Q.Registry.tick()
+assert(draftEditor.closed and ModData.getOrCreate('B47ANCEDRooms').customRooms==beforeCancel)
+-- Simulated transport: visitor policy edits reload the same selected room and
+-- retain visitor context, including a bounded read retry after admission denial.
+local roomLists,roomGets,writes={},{},{}
+Q.Client.request=function(_,command,args,callback)
+ local entry={args=args,callback=callback}
+ if command=='roomList' then roomLists[#roomLists+1]=entry
+ elseif command=='roomGet' then roomGets[#roomGets+1]=entry
+ elseif command=='roomChange' then writes[#writes+1]=entry
+ else error('unexpected contextual-editor command '..command) end
+end
+local managed=E.open(0,p)
+local managedMeta={id=firstId,revision=3,label='Managed'}
+local function replyList(index,revision)
+ roomLists[index].callback({status='ok',revision=revision,editKey='context:'..revision,rooms={managedMeta},options={maxTiles=1024,doorways=true}})
+end
+local managedRoom={id=firstId,ordinal=1,revision=3,name='Managed',rows={{0,0,0,0}},canEditGeometry=true,canAssign=true,
+ assigned='fixture-owner',policy={mode='private',rules={},grants={}},parentMembers={}}
+replyList(1,100);managed:select(managedMeta);roomGets[1].callback({status='ok',room=managedRoom});managed:updateSidebar()
+managed:openVisitors();assert(managed.accountEntry:isVisible() and managed.accountEntry.focused and managed.buttons.RoomVisitor:isVisible())
+managed.accountEntry:setText('guest-account')
+local getMenu=ISContextMenu.get;local visitorMenu
+ISContextMenu.get=function(...) local menu=getMenu(...);visitorMenu=menu;return menu end
+managed:visitorMenu();ISContextMenu.get=getMenu
+assert(visitorMenu and #visitorMenu.options==12)
+local choice=visitorMenu.options[1];choice.callback(choice.target)
+assert(confirmation and #writes==0,'permission change bypassed review')
+confirmation.callback('accept');replyList(2,100)
+assert(#writes==1 and writes[1].args.action=='policy' and writes[1].args.policy.grants['guest-account'].discover==true)
+writes[1].callback({status='ok',revision=101});assert(managed.loadingSelection and managed.record==nil)
+managedMeta.revision=4;replyList(3,101)
+roomGets[2].callback({status='rateLimited'});assert(managed.loadingSelection and managed.readRetry)
+f.advance(600);managed:update();assert(#roomGets==3 and #writes==1,'read retry resubmitted a write')
+managedRoom.revision=4;managedRoom.policy=writes[1].args.policy
+roomGets[3].callback({status='ok',room=managedRoom});managed:updateSidebar()
+assert(managed.record.id==firstId and managed.record.revision==4 and not managed:isDirty())
+assert(managed.visitorEditing and managed.accountEntry:isVisible() and managed.accountEntry:getInternalText()=='guest-account')
+managed.buttons.RoomHideVisitors.onclick(managed);assert(not managed.accountEntry:isVisible() and not managed.accountEntry:isFocused())
+managed:refresh();roomLists[4].callback({status='rateLimited'});managed:updateSidebar()
+assert(managed.buttons.RoomReload:isVisible() and managed.buttons.RoomReload.enable,'failed refresh had no recovery control')
+managed.buttons.RoomReload.onclick(managed);replyList(5,101);managed:updateSidebar();assert(not managed.buttons.RoomReload:isVisible())
+managed:requestClose();assert(managed.closed and p:isVisible());Q.Client.request=request
+print('PASS OFFLINE room editor: creation/editing separation, quick create/rename, retained geometry/policy selection, contextual/advanced/visitor controls, busy guards, dirty Done/Escape, destructive/incomplete review, read recovery, consecutive saves, zoom and modal/parent lifecycle')
