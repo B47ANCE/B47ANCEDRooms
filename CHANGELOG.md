@@ -1,6 +1,7 @@
 # Changelog
 
 ## [0.2.0-dev.5]
+- [VERIFIED distribution] Existing Workshop item 3820077442 updated successfully; canonical metadata/public visibility/thumbnail and exact fresh 85-file download PASS. Steam restarted gracefully. Desktop subscription update is pending at the last check. Release commit fdf1fcb; package hash and evidence are in docs/WORKSHOP_WORKFLOW_PUBLICATION.md. Native UI, save/load and dedicated G7 remain NOT TESTED; stable G8 BLOCKED.
 - Explicit publish authorization: preserve published .2 artifacts unchanged, package 85 committed Lua-only runtime files and stage the workflow update for existing item 3820077442. Full offline/version/ZIP gates PASS; G7 and stable G8 remain BLOCKED. Implementation checkpoint 65ad9d8; distribution evidence is recorded in docs/WORKSHOP_WORKFLOW_PUBLICATION.md.
 - Compatible MINOR-scope workflow additions within the unreleased 0.2 line: live refresh with protected conflict recovery, name/type/role/floor filtering, policy summaries, optional repeated type/role choices and authoritative permission copying.
 - Server-owned gameplay state, designated UUIDs, vanilla building detection, API/protocol 1 and schema 2 remain. No inventory routing is added to Rooms.

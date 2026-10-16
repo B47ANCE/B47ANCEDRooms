@@ -2,7 +2,29 @@
 
 Project Version: 0.2.0-dev.5
 
-Status: PREPARED; upload and download verification pending.
+[VERIFIED distribution] SteamCMD exited 0 and reported Committing update...Success
+for existing Workshop item 3820077442. App ID 108600, public visibility, title,
+canonical description and supplied thumbnail match the live item. Release commit:
+`fdf1fcbe4b93f58f12cf9a54eaa72fe9343e95c8`. Content update: 2026-10-16 15:48:09 UTC;
+Phoenix: 2026-10-16 08:48:09 AM.
+
+Fresh SteamCMD download exactly matches all 85 source/package/stage files and
+required common/AnimSets/actiongroups roots. The desktop subscription has not yet matched .5 at the last read-only check.
+Its Steam-managed update is pending; no desktop Workshop files were manually
+replaced. Fresh SteamCMD download parity is verified independently.
+Steam exited gracefully and the same registered executable restarted with a
+hidden launch window; the new client process was verified.
+No local SP deployment, server change or game/server launch occurred. Upload,
+download and client restart are distribution evidence only, not runtime proof.
+
+Source/artifact/version/ZIP/stage/text gates PASS. Real paragraph breaks and MP
+testing labels are preserved; description is 6503 UTF-8 bytes, below
+the current documented 8000-byte maximum checked October 16, 2026:
+https://partner.steamgames.com/doc/api/ISteamRemoteStorage#k_cchPublishedDocumentDescriptionMax
+Public GitHub ancestry/SHA and tracked/staged secret/path audits passed before
+release pushes and upload. Prior .2 artifacts retain exact hashes and ZIP CRC.
+Private logs, raw API data, local provenance and receipts remain ignored.
+G7 BLOCKED / NOT TESTED; stable-release G8 BLOCKED.
 
 Explicit publish request authorizes existing item 3820077442, App ID 108600,
 Mod ID B47ANCEDRooms. Public visibility and supplied thumbnail are unchanged.
