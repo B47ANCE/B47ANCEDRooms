@@ -32,7 +32,8 @@ including input arriving during list reads. Stale saved rooms block Save until
 explicit refresh, discard/reload or recovery as a new room. Copy Permissions
 previews source mode and confirms preserving/replacing visitor grants. The server
 validates both records and rechecks queued authority; no client snapshot grants
-access. No package, deployment, upload or game/server launch is included.
+access. The later explicit publish request authorizes Workshop test distribution;
+local deployment and game/server launch remain outside this workflow.
 
 [TESTED offline Windows/Lua 5.1] Full source suite PASS. Actual registry writes
 exercise consecutive new rooms and rename without a modal, with stable distinct
@@ -56,9 +57,10 @@ $roomsPython = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dep
 git diff --check
 ```
 
-The version checker passes all declared current source mirrors but fails the
-unchanged published .2 ZIP filename and embedded mod.info against .4. This blocks
-release artifact checks; no package was rebuilt, relabeled or deleted.
+The source-only checkpoint was blocked by the prior .2 ZIP. The later explicit
+publish request authorized preserving it and building .5; current source/artifact
+version and ZIP checks PASS. See WORKSHOP_WORKFLOW_PUBLICATION.md for distribution
+status. Historical packages/evidence are unchanged; native gates remain open.
 
 [VERIFIED source] Installed Steam build 25485521, game target 42.21.0: native
 ISTextEntryBox:setEditable and focus/unfocus are present at lines 64 and 146-150. Native

@@ -99,16 +99,16 @@ registry/network/migration and existing editor tests remain included.
 
 Cleaning geometry/permission behavior is unchanged by the 0.2.0-dev.5 room
 metadata/navigation/workflow additions; types and storage roles do not change clean priority; the full current offline suite, including cleaning, passes. Source
-version mirrors match; the preserved published .2 ZIP blocks current artifact
-version checks until authorized packaging. WORKSHOP_KEEP_OPEN_PUBLICATION.md
-and WORKSHOP_DESIGNATED_PUBLICATION.md retain their historical distribution
-evidence, not current UI or multiplayer verification.
+and artifact version checks pass following explicit publish authorization and
+preservation of the old .2 package. WORKSHOP_WORKFLOW_PUBLICATION.md records current
+distribution separately. WORKSHOP_KEEP_OPEN_PUBLICATION.md and
+WORKSHOP_DESIGNATED_PUBLICATION.md retain historical evidence, not runtime proof.
 Quartermaster source/integration is outside this Rooms-only iteration; existing
 consumers must accept the designated-only scope and handle the no-rooms status.
 No current cross-repository or native integration result is claimed.
 
 Native UI, fluid/inventory transactions, synchronization, real save/load and
 dedicated behavior are **NOT TESTED**. G7 BLOCKED / NOT TESTED; stable G8 BLOCKED.
-The .1/.2 checkpoints were explicitly published for testing. The current .5 development
-request does not authorize packaging, deployment or upload. No game/server launch
-is included. Historical distribution does not establish current runtime proof.
+The .1/.2 checkpoints were explicitly published for testing. The subsequent
+explicit publish request authorizes the .5 Workshop test update. No local SP
+deployment or game/server launch is included. Distribution is not runtime proof.

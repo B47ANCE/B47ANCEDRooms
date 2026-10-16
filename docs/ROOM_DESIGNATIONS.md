@@ -125,9 +125,10 @@ $roomsPython = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dep
 git -c core.safecrlf=false diff --check
 ```
 
-The checker matches current source mirrors, but the preserved published .2 ZIP
-still fails filename and embedded-version checks against .4. No packaging,
-deployment, publication, game/server launch or artifact cleanup is included.
+Following explicit publish authorization, the old .2 ZIP/checksum/provenance
+are preserved and current .5 source/artifact version and ZIP checks PASS. See
+WORKSHOP_WORKFLOW_PUBLICATION.md. No local SP deployment, game/server launch,
+server change or artifact deletion is included; native acceptance remains open.
 
 [RUNTIME GATE] On disposable saves: create Kitchen/Primary and Pantry/Secondary;
 save/reload and reconnect/restart; select outlines at different zooms/floors;

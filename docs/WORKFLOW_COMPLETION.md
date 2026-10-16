@@ -120,11 +120,12 @@ $roomsPython = "$env:USERPROFILE\.cache\codex-runtimes\codex-primary-runtime\dep
 git -c core.safecrlf=false diff --check
 ```
 
-Current source mirrors match dev.5. The full version checker still fails the
-preserved published dev.2 ZIP filename and embedded mod.info. That artifact is
-unchanged; current packaging/release checks remain blocked until authorized
-package preparation. No deployment, publication, game/server launch or cleanup
-is included. The existing published build is dev.2, not this source checkpoint.
+The source-only checkpoint 65ad9d8 was blocked solely by the prior published
+dev.2 ZIP. A subsequent explicit publish request authorized preserving the old
+ZIP/checksum/provenance and building dev.5. Full current source/artifact version,
+offline and ZIP integrity checks now PASS. WORKSHOP_WORKFLOW_PUBLICATION.md
+records distribution status separately from native acceptance. No local SP
+deployment, game/server launch, server change or artifact deletion is included.
 
 [RUNTIME GATE] Required native acceptance on disposable saves:
 

@@ -1,6 +1,7 @@
 # Changelog
 
 ## [0.2.0-dev.5]
+- Explicit publish authorization: preserve published .2 artifacts unchanged, package 85 committed Lua-only runtime files and stage the workflow update for existing item 3820077442. Full offline/version/ZIP gates PASS; G7 and stable G8 remain BLOCKED. Implementation checkpoint 65ad9d8; distribution evidence is recorded in docs/WORKSHOP_WORKFLOW_PUBLICATION.md.
 - Compatible MINOR-scope workflow additions within the unreleased 0.2 line: live refresh with protected conflict recovery, name/type/role/floor filtering, policy summaries, optional repeated type/role choices and authoritative permission copying.
 - Server-owned gameplay state, designated UUIDs, vanilla building detection, API/protocol 1 and schema 2 remain. No inventory routing is added to Rooms.
 - Development checkpoint: full offline Lua 5.1 source/regression suite PASS; native UI, real save/load and dedicated G7 NOT TESTED; stable G8 BLOCKED. No packaging/deployment/publication included.
