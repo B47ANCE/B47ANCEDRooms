@@ -2,7 +2,22 @@
 
 Project Version: 0.2.0-dev.1
 
-Status: PREPARED; SteamCMD upload and download verification pending.
+[VERIFIED distribution] SteamCMD exited 0 and reported Committing update...Success
+for the existing item. Live canonical description, title, App ID, item identity,
+public visibility and unchanged supplied thumbnail match. Content update:
+2026-10-16 08:20:54 UTC (October 16, 2026, 1:20:54 AM Phoenix).
+Release commit: `6a385da52d40358814050b4c8ba6d9c9b66de44d`.
+
+A fresh SteamCMD Workshop download matches all 83 committed runtime files and
+required common/AnimSets/actiongroups roots. The removed Native.lua is absent.
+After graceful Steam restart, the desktop subscription also matches exactly all
+83 files, with no extras. The desktop update was initially pending and completed
+before final verification. This is distribution evidence, not native game proof.
+
+The registered Steam installation exited gracefully and the same verified client
+started again with a hidden launch window. Restart PASS is separate from payload
+parity. No force termination, game/server launch, local SP deployment or server
+mutation occurred. Local receipt/provenance retain exact verification times.
 
 Explicit publish request authorizes an MP testing update to existing Workshop
 item 3820077442, App ID 108600, Mod ID B47ANCEDRooms, preserving public visibility.
@@ -26,7 +41,13 @@ Fresh stage, VDF, release manifest and local upload/verification evidence:
 ignored dist/workshop-publish/0.2.0-dev.1-designated/submission. Current ZIP and
 checksum: dist/current. The manifest binds commit, IDs, version, game build,
 package/source/text/thumbnail hashes and evidence. Raw logs and private local
-account data are never committed. The supplied Rooms thumbnail is unchanged.
+account data are never committed. The supplied Rooms thumbnail is unchanged. Committed source/package/stage hashes,
+ZIP CRC/path/duplicate/case checks, real paragraph breaks, MP test labels and
+linked public source/Workshop identities pass. The rendered description is 5127
+UTF-8 bytes, below the documented 8000-byte bound checked on October 16, 2026:
+https://partner.steamgames.com/doc/api/ISteamRemoteStorage#k_cchPublishedDocumentDescriptionMax
+GitHub freshness/remote SHA and tracked/staged secret scans were verified before
+public pushes and immediately before upload.
 
 [TESTED offline Windows/Lua 5.1] Full source suite passes. Full version/artifact
 checks pass. Package inventory: 83 runtime files, Lua-only; no custom Java/JAR,
