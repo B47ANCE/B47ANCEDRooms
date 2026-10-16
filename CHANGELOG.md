@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0-dev.4]
+- Compatible feature checkpoint within the 0.2 prerelease line: direct outline selection, floor-grouped navigation, room types and Primary/Secondary/Unassigned storage metadata.
+- Custom designated UUIDs only; existing records default to Unassigned without read-time save rewrites. Server validation, permissions, revisions and cooperative commits remain authoritative. No inventory routing or new gameplay settings.
+- Development only: full offline Lua 5.1 source/regression suite PASS; native UI, save/load and dedicated G7 NOT TESTED; stable G8 BLOCKED. No packaging, deployment or publication.
+
 ## [0.2.0-dev.3]
 - Compatible PATCH-scope contextual editor refinement: separate creating from editing, Save & Next / Save Changes and Done, state-relevant sidebar controls and collapsed advanced operations, and visitor fields only while managing visitors. No room-type/storage-role PR integration.
 - Keep confirmed creates on a blank same-floor draft; reload and retain selected edits. Routine create/rename avoids a redundant modal; geometry replacements, destructive/compound/incomplete/disconnected operations and policy/ownership changes retain review. Done protects unsaved work. Server authority, schema, API/protocol and sandbox semantics are unchanged.

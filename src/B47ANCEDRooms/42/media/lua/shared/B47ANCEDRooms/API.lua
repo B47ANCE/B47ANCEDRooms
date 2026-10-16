@@ -2,6 +2,7 @@ local I=require 'B47ANCEDRooms/Identity'
 local R=require 'B47ANCEDRooms/Registry'
 local P=require 'B47ANCEDRooms/Policy'
 local G=require 'B47ANCEDRooms/Geometry'
+local Types=require 'B47ANCEDRooms/RoomTypes'
 local A={version=1,ready=true};B47ANCEDRooms.API=A
 local listeners={}
 local function raw(player,id,revision)
@@ -18,7 +19,7 @@ local function raw(player,id,revision)
  return nil,'RoomUnavailable'
 end
 function A.capabilities()
- return {api=1,version=I.version,ready=true,editor=true,nativeOverrides=false,designatedRooms=true,delegatedPolicies=true,
+ return {api=1,version=I.version,ready=true,editor=true,nativeOverrides=false,designatedRooms=true,delegatedPolicies=true,roomDesignations=1,storageScopes=1,
   cleaning=1,cleaningScope='designatedRooms',boundaries={quartermasterGrant=true,vanillaFinalMutation=false,entry=false,doors=false,building=false,destruction=false,cleaning=true}}
 end
 function A.subscribe(fn) if type(fn)~='function' then return end;listeners[fn]=true;return function() listeners[fn]=nil end end
@@ -56,12 +57,12 @@ function A.resolveRoom(player,id,revision)
   local permitted=false;for _,t in ipairs(R.geometry(r).tiles) do if A.canAccessAt(player,t.x,t.y,t.z,'discover').state=='allow' then permitted=true;break end end
   if not permitted then return {status='RoomAccessDenied'} end
  end
- return {status='ok',room={id=r.id,name=r.name,revision=r.revision,count=R.geometry(r).count}}
+ return {status='ok',room={id=r.id,name=r.name,revision=r.revision,count=R.geometry(r).count,roomType=r.roomType or 'unassigned',designation=r.designation or 'unassigned'}}
 end
 function A.geometry(player,id,revision)
  local resolution=A.resolveRoom(player,id,revision);if resolution.status~='ok' then return resolution end
  local r=raw(player,id,revision)
- return {status='ok',room={id=r.id,name=r.name,revision=r.revision,rows=I.copy(r.rows)}}
+ return {status='ok',room={id=r.id,name=r.name,revision=r.revision,rows=I.copy(r.rows),roomType=r.roomType or 'unassigned',designation=r.designation or 'unassigned'}}
 end
 function A.tiles(player,id,revision)
  local result=A.geometry(player,id,revision);if result.status~='ok' then return result end
@@ -82,7 +83,8 @@ function A.listRooms(player,filter)
      if def and other and other:getDef()==def then inBuilding=true;break end
     end
    end
-   if inBuilding then rooms[#rooms+1]={id=id,name=r.name,label=r.name..' [r'..r.ordinal..']',revision=r.revision,count=g.count,bounds=I.copy(g.bounds)} end
+   local floors={};local last;for _,row in ipairs(g.rows) do if row[1]~=last then floors[#floors+1]=row[1];last=row[1] end end
+   if inBuilding then rooms[#rooms+1]={id=id,name=r.name,label=r.name..' [r'..r.ordinal..']',revision=r.revision,count=g.count,bounds=I.copy(g.bounds),floors=floors,roomType=r.roomType or 'unassigned',designation=r.designation or 'unassigned'} end
   end
  end
  table.sort(rooms,function(a,b) return a.label<b.label end)
@@ -99,18 +101,59 @@ end
 function A.permissions(player,id)
  local r,e=raw(player,id);if not r or not P.edit(player,r,'rename') then return {status=e or 'RoomDenied'} end
  return {status='ok',owner=r.owner,assigned=r.assigned,safehouse=r.safehouse,revision=r.revision,
-  policy=I.copy(r.policy or {mode='shared',rules={},grants={}}),canAssign=P.edit(player,r,'assignOwner'),canEditGeometry=P.edit(player,r,'geometry')}
+  policy=I.copy(r.policy or {mode='shared',rules={},grants={}}),canAssign=P.edit(player,r,'assignOwner'),canEditGeometry=P.edit(player,r,'geometry'),canConfigureRoom=P.edit(player,r,'policy'),roomType=r.roomType or 'unassigned',designation=r.designation or 'unassigned'}
+end
+function A.roomTypes() return {status='ok',types=I.copy(Types.ids),roles=I.copy(Types.roles)} end
+-- Authoritative physical-target queries deliberately do not use editor range.
+function A.storageScopes(player,target)
+ if isClient() or not target or not target.obj then return {status='RoomPermissionUnavailable'} end
+ local sq=target.obj:getSquare();if not sq then return {status='RoomPermissionUnavailable'} end
+ local access=A.canAccessAt(player,sq:getX(),sq:getY(),sq:getZ(),'deposit')
+ if access.state~='allow' then return {status=access.reason or 'RoomAccessDenied'} end
+ local lib,e=R.library();if not lib then return {status=e} end
+ local out={}
+ for id,record in pairs(lib.records) do
+  if G.contains(R.geometry(record),sq:getX(),sq:getY(),sq:getZ()) then
+   out[#out+1]={id=id,name=record.name,revision=record.revision,roomType=record.roomType or 'unassigned',designation=record.designation or 'unassigned'}
+  end
+ end
+ table.sort(out,function(a,b) return a.id<b.id end)
+ return {status='ok',rooms=out,revision=lib.revision}
+end
+function A.storageGeometry(player,id,revision,target)
+ local result=A.storageScopes(player,target);if result.status~='ok' then return result end
+ local found;for _,room in ipairs(result.rooms) do if room.id==id then found=room end end
+ if not found then return {status='RoomUnavailable'} end
+ if revision~=nil and found.revision~=revision then return {status='conflict'} end
+ local lib,e=R.library();if not lib then return {status=e} end
+ local record=lib.records[found.id]
+ return {status='ok',room={id=record.id,name=record.name,revision=record.revision,rows=I.copy(record.rows),roomType=record.roomType or 'unassigned',designation=record.designation or 'unassigned'}}
+end
+function A.storageTiles(player,id,revision,target)
+ local result=A.storageGeometry(player,id,revision,target);if result.status~='ok' then return result end
+ local geometry,e=G.normalize(result.room.rows);if not geometry then return {status=e} end
+ return {status='ok',tiles=I.copy(geometry.tiles),revision=result.room.revision}
 end
 function A.change(player,args) return R.handle(player,'roomChange',args) end
 function A.beginEdit(player) return R.handle(player,'roomList',{renew=true}) end
 -- Retired API entry point fails explicitly; it must never delete a saved room.
 function A.restoreVanilla() return {status='RoomPermissionUnsupported'} end
-local mutations={create='save',rename='save',editGeometry='save',delete='delete',merge='merge',split='split',assignOwner='assign',revokeOwner='assign',setPolicy='policy',requestBoundary='requestBoundary',approveBoundary='approveBoundary',rejectBoundary='rejectBoundary',relinquish='relinquish'}
+local mutations={create='save',rename='save',editGeometry='save',delete='delete',merge='merge',split='split',assignOwner='assign',revokeOwner='assign',setPolicy='policy',setDesignation='designation',requestBoundary='requestBoundary',approveBoundary='approveBoundary',rejectBoundary='rejectBoundary',relinquish='relinquish'}
 for method,action in pairs(mutations) do local operation=action;local revoke=method=='revokeOwner'
  A[method]=function(player,args) local payload=I.copy(args or {});payload.action=operation;if revoke then payload.assigned=nil end;return A.change(player,payload) end
 end
 function A.canAccess(player,id,action,target)
  local r,e=raw(player,id);if not r then return {state='unknown',reason=e} end
+ if action=='configureRoom' then
+  if not P.edit(player,r,'policy') then return {state='deny',revision=r.revision} end
+  local deadline=getTimestampMs()+8
+  for _,tile in ipairs(R.geometry(r).tiles) do
+   if getTimestampMs()>=deadline then return {state='unknown',reason='RoomPermissionUnavailable'} end
+   local ok,why=P.base(player,getCell():getGridSquare(tile.x,tile.y,tile.z),'configure')
+   if not ok then return {state=why=='unavailable' and 'unknown' or 'deny',reason='RoomAccessDenied'} end
+  end
+  return {state='allow',revision=r.revision}
+ end
  if action=='editRoom' or action=='assignOwner' then
   return {state=P.edit(player,r,action=='assignOwner' and action or 'geometry') and 'allow' or 'deny',revision=r.revision}
  end

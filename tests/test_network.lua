@@ -17,12 +17,13 @@ assert(W.handle(f.player,'roomList',{protocol=1,unknown={}}).status=='invalid')
 f.advance(3000)
 local lease=W.handle(f.player,'roomList',{protocol=1,request=7,renew=true})
 assert(lease.status=='ok' and lease.editKey and lease.nativeRooms==nil)
-local args={protocol=1,request=8,action='save',name='Network Room',rows={{0,0,0,0}},nonce='transport:1',editKey=lease.editKey,revision=lease.revision,owner='forged'}
+local args={protocol=1,request=8,action='save',name='Network Room',rows={{0,0,0,0}},roomType='medical',designation='primary',nonce='transport:1',editKey=lease.editKey,revision=lease.revision,owner='forged'}
 assert(W.handle(f.player,'roomChange',args).status=='pending')
 for _=1,8 do f.advance(250);f.tick() end
 local result=W.handle(f.player,'roomPoll',{protocol=1,nonce=args.nonce})
 assert(result.status=='ok')
 local lib=R.library();local id,record=next(lib.records);assert(record.owner=='fixture-player' and lib.revision==1)
+assert(record.roomType=='medical' and record.designation=='primary','transport dropped designation intent')
 f.advance(1000);assert(W.handle(f.player,'roomChange',args).status=='ok')
 assert(R.library().revision==1,'replayed write mutated the room twice')
 args.nonce='transport:2';f.advance(1000);assert(W.handle(f.player,'roomChange',args).status=='expired')

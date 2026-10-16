@@ -38,12 +38,23 @@ assert(API.canAccessAt(b,0,0,0,'withdraw').state=='allow')
 assert(API.canAccessAt(a,0,0,0,'withdraw').state=='deny','parent owner received gameplay bypass')
 assert(API.canAccessAt(administrator,0,0,0,'withdraw').state=='deny','admin received gameplay bypass')
 assert(API.permissions(a,id).canAssign and API.permissions(b,id).assigned=='B')
+assert(write(b,{action='designation',id=id,roomRevision=revision(id),roomType='bedroom',designation='secondary'}).status=='ok')
+assert(write(c,{action='designation',id=id,roomRevision=revision(id),roomType='armory',designation='primary'}).status=='RoomDenied')
+assert(write(c,{action='save',id=id,roomRevision=revision(id),name='Forged',rows={{0,0,0,0}},roomType='armory'}).status=='RoomDenied')
+-- Parent invalidation after admission revokes designation authority even when
+-- rename membership remains valid. No partial metadata write may persist.
+local lease=API.beginEdit(b);local prior=R.library()
+assert(API.setDesignation(b,{id=id,roomRevision=revision(id),revision=lease.revision,editKey=lease.editKey,nonce='pending-designation',roomType='medical',designation='primary'}).status=='pending')
+maxX=9;R.tick();assert(R.handle(b,'roomPoll',{nonce='pending-designation'}).status=='RoomDenied')
+assert(R.library()==prior and R.library().records[id].roomType=='bedroom');maxX=10
 assert(API.canAccessAt(c,0,0,0,'discover').state=='deny')
 -- A guest can deposit without getting withdrawal or content inspection.
 local policy={mode='private',rules={},grants={C={discover=true,deposit=true}}}
 assert(write(b,{action='policy',id=id,roomRevision=revision(id),policy=policy}).status=='ok')
 assert(API.canAccessAt(c,0,0,0,'deposit').state=='allow' and API.canAccessAt(c,0,0,0,'withdraw').state=='deny')
 assert(API.canAccessAt(c,0,0,0,'inspect').state=='deny' and API.canAccessAt(c,0,0,0,'configure').state=='deny')
+assert(API.storageScopes(c,{obj=f.a}).rooms[1].roomType=='bedroom')
+assert(API.storageScopes(a,{obj=f.a}).status~='ok','parent metadata rights bypassed private deposit rules')
 nativeAllowed=false;assert(API.canAccessAt(b,0,0,0,'withdraw').state=='deny');nativeAllowed=true
 -- Permission snapshots are detached; callers cannot mutate persisted policy.
 local snapshot=API.permissions(b,id);snapshot.policy.grants.C.withdraw=true

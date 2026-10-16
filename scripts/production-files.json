@@ -20,6 +20,7 @@
   "42/media/lua/shared/B47ANCEDRooms/Network.lua",
   "42/media/lua/shared/B47ANCEDRooms/Policy.lua",
   "42/media/lua/shared/B47ANCEDRooms/Registry.lua",
+  "42/media/lua/shared/B47ANCEDRooms/RoomTypes.lua",
   "42/media/lua/shared/B47RoomsBootstrap.lua",
   "42/media/lua/shared/Translate/AR/Sandbox.json",
   "42/media/lua/shared/Translate/AR/UI.json",

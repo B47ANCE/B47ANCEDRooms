@@ -2,6 +2,7 @@
 local I=require 'B47ANCEDRooms/Identity'
 local G=require 'B47ANCEDRooms/Geometry'
 local P=require 'B47ANCEDRooms/Policy'
+local Types=require 'B47ANCEDRooms/RoomTypes'
 local Import=require 'B47ANCEDRooms/LegacyImport'
 local R={jobs=setmetatable({},{__mode='k'})};B47ANCEDRooms.Registry=R
 local checked=setmetatable({},{__mode='k'});local shapes=setmetatable({},{__mode='k'})
@@ -42,6 +43,7 @@ local function library()
    or not name(room.name) or type(room.owner)~='string' or #room.owner<1 or #room.owner>256
    or not integer(room.revision) or not integer(room.createdAt) or not integer(room.updatedAt)
    or (room.safehouse~=nil and (type(room.safehouse)~='string' or #room.safehouse>256)) then return nil,'schema' end
+  if not Types.valid(room.roomType) or not Types.role(room.designation) then return nil,'schema' end
   if not integer(room.ordinal) or room.ordinal<1 or room.ordinal>lib.serial then return nil,'schema' end
   if ordinals[room.ordinal] then return nil,'schema' end;ordinals[room.ordinal]=true
   if not G.array(I.aliases(room),128) then return nil,'schema' end
@@ -67,6 +69,7 @@ local function nearby(player,g)
 end
 local function copyRoom(room,player)
  local out=I.copy(room);out.nativeId=nil;out.nativeIds=nil
+ out.roomType=room.roomType or 'unassigned';out.designation=room.designation or 'unassigned';out.canConfigureRoom=P.edit(player,room,'policy')
  out.canEditGeometry=P.edit(player,room,'geometry');out.canAssign=P.edit(player,room,'assignOwner');out.canRelinquish=room.assigned==owner(player)
  if out.canAssign then local h=house(room.safehouse);out.parentMembers={}
   if h and h:getPlayers():size()<=256 then
@@ -109,7 +112,7 @@ local function currentPermission(player,sq)
 end
 local fields={protocol=true,request=true,id=true,roomRevision=true,revision=true,editKey=true,nonce=true,action=true,
  name=true,rows=true,disconnected=true,confirm=true,ids=true,secondName=true,secondRows=true,
- assigned=true,policy=true,renew=true,owner=true} -- owner is ignored; authenticated actor owns creation.
+ assigned=true,policy=true,renew=true,owner=true,roomType=true,designation=true} -- owner is ignored; authenticated actor owns creation.
 local function plainArgs(args)
  if type(args)~='table' or getmetatable(args) then return false end
  for k in pairs(args) do if not fields[k] then return false end end
@@ -164,6 +167,11 @@ function R.handle(player,command,args)
  if args.id and (not old or not member(player,old)) then return {status='RoomDenied'} end
  if old and args.roomRevision~=old.revision then return {status='conflict'} end
  local action=args.action
+ if not Types.valid(args.roomType) or not Types.role(args.designation) then return {status='RoomDesignationInvalid'} end
+ local roomType=args.roomType or (action~='designation' and old and old.roomType) or 'unassigned'
+ local designation=args.designation or (action~='designation' and old and old.designation) or 'unassigned'
+ local configure=old and (roomType~=(old.roomType or 'unassigned') or designation~=(old.designation or 'unassigned'))
+ if configure and not P.edit(player,old,'policy') then return {status='RoomDenied'} end
  if action=='restore' then return {status='RoomPermissionUnsupported'} end
  if old and action=='approveBoundary' then
   if not P.edit(player,old,'geometry') or not old.pendingBoundary then return {status='RoomDenied'} end
@@ -175,7 +183,8 @@ function R.handle(player,command,args)
   if same then for k in pairs(proposed.set) do if not original.set[k] then same=false;break end end end
   if not same then action='requestBoundary' end
  end
- if action=='assign' or action=='policy' or action=='relinquish' or action=='requestBoundary' or action=='rejectBoundary' then
+ if configure and action~='save' and action~='designation' then return {status='RoomDenied'} end
+ if action=='designation' or action=='assign' or action=='policy' or action=='relinquish' or action=='requestBoundary' or action=='rejectBoundary' then
   if not old then return {status='invalid'} end
   local r=I.copy(old);r.revision=r.revision+1;r.updatedAt=getTimestamp()
   if action=='assign' then
@@ -184,6 +193,9 @@ function R.handle(player,command,args)
    if who~=nil and (not h or type(who)~='string' or #who<1 or #who>256 or who:find('%c') or not (h:getOwner()==who or h:getPlayers():contains(who))) then return {status='RoomDenied'} end
    r.assigned=who;r.policy=who and I.copy(old.policy or {mode='shared',rules={},grants={}}) or {mode='shared',rules={},grants={}};r.policy.grants={}
    if h then r.parentOwner=h:getOwner();r.parentBounds={h:getX(),h:getY(),h:getX2(),h:getY2()} end
+  elseif action=='designation' then
+   if not P.edit(player,old,'policy') then return {status='RoomDenied'} end
+   r.roomType=roomType;r.designation=designation
   elseif action=='policy' then
    if not P.edit(player,old,'policy') or not P.valid(args.policy) then return {status='RoomPolicyInvalid'} end
    if args.policy.mode=='private' and I.option('DelegatedRooms',true)~=true then return {status='RoomPolicyDisabled'} end
@@ -214,9 +226,10 @@ function R.handle(player,command,args)
   changed[id]={id=id,ordinal=old and old.ordinal or serial,name=title,owner=old and old.owner or owner(player),revision=old and old.revision+1 or 1,
    safehouse=old and old.safehouse,rows=geometry.rows,createdAt=old and old.createdAt or getTimestamp(),updatedAt=getTimestamp()}
   if old then
-   for _,k in ipairs({'assigned','policy','parentOwner','parentBounds','nativeId','nativeIds'}) do changed[id][k]=I.copy(old[k]) end
+   for _,k in ipairs({'assigned','policy','parentOwner','parentBounds','nativeId','nativeIds','roomType','designation'}) do changed[id][k]=I.copy(old[k]) end
    if P.edit(player,old,'geometry') then local h=house(old.safehouse);if h then changed[id].parentOwner=h:getOwner();changed[id].parentBounds={h:getX(),h:getY(),h:getX2(),h:getY2()} end end
   end
+  changed[id].roomType=roomType;changed[id].designation=designation
   if action=='merge' then
    if not P.edit(player,old,'geometry') then return {status='RoomDenied'} end
    if not old or not G.array(args.ids,128) or #args.ids<2 or args.confirm~=true then return {status='invalid'} end
@@ -224,7 +237,7 @@ function R.handle(player,command,args)
    for _,other in ipairs(args.ids) do
     if type(other)~='string' or #other~=73 or seen[other] then return {status='invalid'} end;seen[other]=true
     local r=lib.records[other];if not r or not member(player,r) then return {status='RoomDenied'} end
-    if not P.edit(player,r,'geometry') or r.assigned~=old.assigned or not I.equal(r.policy or {mode='shared',rules={},grants={}},old.policy or {mode='shared',rules={},grants={}}) then return {status='RoomDenied'} end
+    if not P.edit(player,r,'geometry') or r.assigned~=old.assigned or (r.roomType or 'unassigned')~=roomType or (r.designation or 'unassigned')~=designation or not I.equal(r.policy or {mode='shared',rules={},grants={}},old.policy or {mode='shared',rules={},grants={}}) then return {status='RoomDenied'} end
     if r.safehouse~=old.safehouse then return {status='RoomAssociationConflict'} end
     merged,e=G.edit(merged.rows,r.rows,false,R.options().maxTiles);if not merged then return {status=e} end
     if other~=old.id then removed[other]=true end
@@ -245,7 +258,7 @@ function R.handle(player,command,args)
    for key in pairs(second.set) do if not original.set[key] then return {status='RoomGeometryInvalid'} end end
    serial=serial+1;local other=world..':'..getRandomUUID();if lib.records[other] or changed[other] then return {status='failed'} end
    changed[other]={id=other,ordinal=serial,name=title2,owner=old.owner,revision=1,safehouse=old.safehouse,rows=second.rows,createdAt=getTimestamp(),updatedAt=getTimestamp()}
-   for _,k in ipairs({'assigned','policy','parentOwner','parentBounds'}) do changed[other][k]=I.copy(old[k]) end
+   for _,k in ipairs({'assigned','policy','parentOwner','parentBounds','roomType','designation'}) do changed[other][k]=I.copy(old[k]) end
   end
  else return {status='invalid'} end
  local count,total=0,0
@@ -259,7 +272,7 @@ function R.handle(player,command,args)
  if count>128 or total>16384 or not integer(serial) or serial>=10000000 or not integer(lib.revision+1) then return {status='RoomTooLarge'} end
  -- A deletion still validates access to the old room cooperatively.
  if action=='delete' then local validation={id=old.id,safehouse=old.safehouse};for _,t in ipairs(G.normalize(old.rows).tiles) do work[#work+1]={tile=t,room=validation} end end
- local j={nonce=args.nonce,editKey=args.editKey,world=world,revision=lib.revision,changed=changed,removed=removed,serial=serial,work=work,index=1,time=getTimestampMs(),original=lib,action=action}
+ local j={nonce=args.nonce,editKey=args.editKey,world=world,revision=lib.revision,changed=changed,removed=removed,serial=serial,work=work,index=1,time=getTimestampMs(),original=lib,action=action,configure=configure or action=='designation'}
  ticket.used=true;R.jobs[player]=j;return {status='pending'}
 end
 function R.tick()
@@ -291,7 +304,7 @@ function R.tick()
    for id in pairs(j.changed) do if lib.records[id] and not member(player,lib.records[id]) then finish(j,'RoomDenied');return end end
    for id in pairs(j.changed) do
     local old=lib.records[id]
-    if old and (j.action=='assign' and not P.edit(player,old,'assignOwner') or (j.action=='merge' or j.action=='split' or j.action=='rejectBoundary') and not P.edit(player,old,'geometry')) then finish(j,'RoomDenied');return end
+    if old and (j.configure and not P.edit(player,old,'policy') or j.action=='assign' and not P.edit(player,old,'assignOwner') or (j.action=='merge' or j.action=='split' or j.action=='rejectBoundary') and not P.edit(player,old,'geometry')) then finish(j,'RoomDenied');return end
    end
    for _=1,32 do
     if getTimestampMs()>=deadline then break end

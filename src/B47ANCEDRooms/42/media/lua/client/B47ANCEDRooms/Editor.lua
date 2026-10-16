@@ -6,6 +6,7 @@ require 'B47RoomsUI/Dialog'
 local Draft=require 'B47ANCEDRooms/Draft'
 local Detect=require 'B47ANCEDRooms/Detection'
 local G=require 'B47ANCEDRooms/Geometry'
+local Types=require 'B47ANCEDRooms/RoomTypes'
 local Q,U=B47ANCEDRooms,B47RoomsUI
 local E=ISPanelJoypad:derive('B47RoomsEditor');Q.Editor=E
 local active={};local sequence=0
@@ -32,14 +33,18 @@ function E:message(code,detail)
  self.status=detail~=nil and tr(code or 'Ready',detail) or tr(code or 'Ready')
 end
 function E:isBusy() return self.submission~=nil or self.loadingSelection==true end
+function E:designationDirty()
+ return self.record and self.record.id and (self.roomType~=(self.record.roomType or 'unassigned') or self.designation~=(self.record.designation or 'unassigned'))
+end
 function E:isDirty()
  return self.draft and (not self.record and self.draft.geometry.count>0
   or not Q.Identity.equal(self.draft.geometry.rows,self.draft.original.rows)
+  or self.roomType~=(self.record and self.record.roomType or 'unassigned') or self.designation~=(self.record and self.record.designation or 'unassigned')
   or self.nameEntry:getInternalText()~=self.startName or self.draft.action~='save')
 end
 function E:load(room)
  self.readGeneration=(self.readGeneration or 0)+1
- self.record=room;self.draft=Draft.new(room);self.nameEntry:setText(room and room.name or tr('RoomDefaultName'))
+ self.record=room;self.draft=Draft.new(room);self.roomType=room and room.roomType or 'unassigned';self.designation=room and room.designation or 'unassigned';self.nameEntry:setText(room and room.name or tr('RoomDefaultName'))
  self.accountEntry:setText('')
  self.secondName:setText(tr('RoomSecondName'));self.first=nil;self.detection=nil;self.incomplete=nil;self.mergeIDs=nil
  self.startName=self.nameEntry:getInternalText();self.conflict=nil;self.visitorEditing=false;self.loadingSelection=false;self.readRetry=nil
@@ -48,6 +53,7 @@ function E:load(room)
 end
 function E:readRoom(meta,message,after)
  self.readGeneration=(self.readGeneration or 0)+1;local generation=self.readGeneration
+ local selectionTool=self.tool=='RoomSelect'
  self.loadingSelection=true;local started=getTimestampMs()
  local function read()
  self:request('roomGet',{id=meta.id,roomRevision=meta.revision},function(r)
@@ -57,6 +63,8 @@ function E:readRoom(meta,message,after)
   self.loadingSelection=false
   if r.status=='ok' then
    self.saved[meta.id]=r.room;self:load(r.room)
+   if selectionTool then self.tool='RoomSelect' end
+   self:highlightList();self:queueOverlays()
    if after and after.visitor and r.room.assigned then self.visitorEditing=true;self.accountEntry:setText(after.account or '') end
    if message then self:message(message,r.room.name) end
   else self.refreshFailed=true;self:message(r.status) end
@@ -64,29 +72,111 @@ function E:readRoom(meta,message,after)
  end
  read()
 end
+local function onFloor(meta,z)
+ if meta.floors then for _,floor in ipairs(meta.floors) do if floor==z then return true end end;return false end
+ return meta.bounds and meta.bounds.z1<=z and meta.bounds.z2>=z
+end
+function E:roomLabel(meta)
+ return meta.label..' | '..tr('RoomType_'..(meta.roomType or 'unassigned'))..' / '..tr('RoomRole_'..(meta.designation or 'unassigned'))
+end
+function E:highlightList()
+ self.list.selected=0
+ if self.record and self.record.id then
+  for i,row in ipairs(self.list.items) do if row.item.id==self.record.id and row.item.listFloor==self.floor then self.list.selected=i;return end end
+ end
+end
+function E:rebuildList()
+ self.list:clear();self.list.itemheight=math.max(24,U.Theme.metrics().font+8);local floors={};local groups={}
+ for _,meta in ipairs(self.metadata or {}) do
+  local levels=meta.floors or (meta.bounds and {meta.bounds.z1} or {self.floor})
+  for _,z in ipairs(levels) do
+   if not groups[z] then groups[z]={};floors[#floors+1]=z end
+   groups[z][#groups[z]+1]=meta
+  end
+ end
+ table.sort(floors,function(a,b) if a==b then return false elseif a==self.floor then return true elseif b==self.floor then return false end;return a<b end)
+ for _,z in ipairs(floors) do
+  self.list:addItem(tr('RoomFloorGroup',z),{header=true,listFloor=z})
+  for _,meta in ipairs(groups[z]) do
+   local item=Q.Identity.copy(meta);item.listFloor=z;local row=self.list:addItem(self:roomLabel(meta),item)
+   row.tooltip=row.text..'\n'..tr('RoomTileCount',meta.count or 0)
+  end
+ end
+ self:highlightList()
+end
+function E:queueOverlays()
+ self.overlayGeneration=(self.overlayGeneration or 0)+1;self.fetchPending=false;self.fetch={};self.edgeSource=nil
+ local keep={};local eligible=0
+ for _,meta in ipairs(self.metadata or {}) do if onFloor(meta,self.floor) then
+  eligible=eligible+1
+  if eligible<=8 then keep[meta.id]=true;if not self.saved[meta.id] then self.fetch[#self.fetch+1]=meta end end
+ end end
+ self.overlayLimited=eligible>8
+ for id in pairs(self.saved) do if not keep[id] and not (self.record and self.record.id==id) then self.saved[id]=nil end end
+ self.savedShapes={}
+end
+function E:setFloor(z)
+ self.floor=math.max(-32,math.min(31,z));self.cursor.z=self.floor;self.first=nil;self.down=false;self:setCapture(false)
+ self:rebuildList();self:queueOverlays()
+end
+function E:savedShape(id,room)
+ self.savedShapes=self.savedShapes or {};local entry=self.savedShapes[id]
+ if not entry or entry.source~=room then entry={source=room,geometry=G.normalize(room.rows)};self.savedShapes[id]=entry end
+ return entry.geometry
+end
+function E:roomsUnderCursor()
+ local out={};local p=self.cursor
+ for _,meta in ipairs(self.metadata or {}) do local room=self.saved[meta.id]
+  if room and G.contains(self:savedShape(meta.id,room),p.x,p.y,p.z) then out[#out+1]=meta end
+ end
+ return out
+end
+function E:selectAtCursor()
+ local rooms=self:roomsUnderCursor()
+ if #rooms==0 then self:message('RoomSelectEmpty');return end
+ if #rooms==1 then self:select(rooms[1]);return end
+ local menu=ISContextMenu.get(self.playerNum,getMouseX(),getMouseY())
+ for _,meta in ipairs(rooms) do local choice=meta;menu:addOption(self:roomLabel(meta),self,function() self:select(choice) end) end
+ U.menu(menu);if self.joyfocus then setJoypadFocus(self.playerNum,menu) end
+end
+function E:selectTool()
+ if self:isBusy() then return end
+ self.tool='RoomSelect';self.first=nil;self.down=false;self.detection=nil;self:setCapture(false);self.worldFocus=true
+ self.edgeSource=nil;setJoypadFocus(self.playerNum,self);self:message('RoomSelectHelp')
+end
+function E:designationMenu()
+ if self:isBusy() or self.draft.action~='save' or self.record and self.record.id and not self.record.canConfigureRoom then return end
+ local menu=ISContextMenu.get(self.playerNum,getMouseX(),getMouseY())
+ local option=menu:addOption(tr('RoomTypeMenu'));local sub=ISContextMenu:getNew(menu);menu:addSubMenu(option,sub)
+ local ids={'unassigned'};for _,id in ipairs(Types.ids) do ids[#ids+1]=id end
+ for _,id in ipairs(ids) do local value=id;sub:addOption(tr('RoomType_'..id),self,function() self.roomType=value;self:updateSidebar() end) end
+ option=menu:addOption(tr('RoomRoleMenu'));sub=ISContextMenu:getNew(menu);menu:addSubMenu(option,sub)
+ for _,id in ipairs(Types.roles) do local value=id;sub:addOption(tr('RoomRole_'..id),self,function() self.designation=value;self:updateSidebar() end) end
+ U.menu(menu);if self.joyfocus then setJoypadFocus(self.playerNum,menu) end
+end
 function E:select(meta)
  if self:isBusy() then return end
+ if meta and meta.header then self:setFloor(meta.listFloor);return end
  local function perform()
   if not meta then self:load();return end
+  if meta.listFloor~=nil then self:setFloor(meta.listFloor) end
   self:readRoom(meta)
  end
- if self:isDirty() then U.Dialog.confirm(self.playerNum,tr('RoomDiscard'),{accept=tr('Discard'),cancel=tr('Cancel')},function(result) if result=='accept' and not self.closed then perform() end end,self)
+ if self:isDirty() then U.Dialog.confirm(self.playerNum,tr('RoomDiscard'),{accept=tr('Discard'),cancel=tr('Cancel')},function(result) if not self.closed then if result=='accept' then perform() else self:highlightList() end end end,self)
  else perform() end
 end
 function E:refresh(after)
  self.refreshGeneration=(self.refreshGeneration or 0)+1;local generation=self.refreshGeneration
+ self.overlayGeneration=(self.overlayGeneration or 0)+1
  self.fetchPending=false;self.fetch={};self.refreshFailed=false
  self:request('roomList',{},function(r)
   if generation~=self.refreshGeneration then return end
   if r.status~='ok' then self.loadingSelection=false;self.refreshFailed=true;self:message(r.status);return end
   self.revision=r.revision;self.editKey=r.editKey;self.options=r.options;self.metadata=r.rooms;self.list:clear()
   self.saved={};self.edgeSource=nil
-  for _,room in ipairs(r.rooms) do self.list:addItem(room.label,room) end
-  -- Fetch overlays only while this editor is open; bounded admission/payloads.
-  self.overlayLimited=#r.rooms>8
-  self.fetch={};for _,m in ipairs(r.rooms) do if #self.fetch<8 then self.fetch[#self.fetch+1]=m end end
+  self:rebuildList();self:queueOverlays()
   if after and after.id then
-   for index,meta in ipairs(r.rooms) do if meta.id==after.id then self.list.selected=index;self:readRoom(meta,'RoomSaved',after);return end end
+   for _,meta in ipairs(r.rooms) do if meta.id==after.id then self:readRoom(meta,'RoomSaved',after);return end end
    self.loadingSelection=false;self:message('RoomUnavailable');return
   end
   self:message(self.conflict or after and after.message or 'RoomPreviewOnly',after and after.name)
@@ -120,12 +210,13 @@ function E:tools()
  local menu=ISContextMenu.get(self.playerNum,getMouseX(),getMouseY())
  for _,key in ipairs({'RoomAddRectangle','RoomRemoveRectangle','RoomPaint','RoomErase','RoomSplit'}) do
   local tool=key;local option=menu:addOption(tr(key),self,function() self.tool=tool;self.first=nil;self.worldFocus=true;setJoypadFocus(self.playerNum,self);self:message('RoomWorldHelp') end)
-  option.notAvailable=self.draft.action~='save' or key=='RoomSplit' and not (self.record and self.record.id and self.advanced)
+  option.notAvailable=self.draft.action~='save' or key=='RoomSplit' and (self:designationDirty() or not (self.record and self.record.id and self.advanced))
  end
  U.menu(menu);if self.joyfocus then setJoypadFocus(self.playerNum,menu) end
 end
 function E:combine()
  if self:isBusy() then return end
+ if self:designationDirty() then self:message('RoomSaveBeforePolicy');return end
  if not self.record or not self.record.id then self:message('RoomSelectSaved');return end
  local menu=ISContextMenu.get(self.playerNum,getMouseX(),getMouseY())
  for _,m in ipairs(self.metadata or {}) do if m.id~=self.record.id then local other=m
@@ -142,7 +233,7 @@ function E:combine()
  U.menu(menu);if self.joyfocus then setJoypadFocus(self.playerNum,menu) end
 end
 function E:apply(a,b)
- if self:isBusy() then return end
+ if self:isBusy() or self.tool=='RoomSelect' then return end
  local region,e=G.rectangle(a,b);if not region then self:message(e);return end
  local ok
  if self.tool=='RoomSplit' then ok,e=self.draft:split(region.rows)
@@ -151,6 +242,7 @@ function E:apply(a,b)
 end
 function E:point()
  if not self.worldFocus then return end
+ if self.tool=='RoomSelect' then self:selectAtCursor();return end
  if self.tool=='RoomPaint' or self.tool=='RoomErase' then self:apply(self.cursor,self.cursor)
  elseif self.first then self:apply(self.first,self.cursor);self.first=nil
  else self.first={x=self.cursor.x,y=self.cursor.y,z=self.cursor.z};self:message('RoomSecondCorner') end
@@ -163,7 +255,9 @@ function E:onMouseDown(x,y)
  if U.Dialog.active(self) then self.b47Dialog:bringToTop();return true end
  if self:isBusy() then return true end
  if x>=self.sidebar.x then return true end
- self.worldFocus=true;self.cursor=self:mouseTile();self.down=true;self.dragStart=self.cursor;self.lastPaint=nil
+ self.worldFocus=true;self.cursor=self:mouseTile()
+ if self.tool=='RoomSelect' then self:selectAtCursor();return true end
+ self.down=true;self.dragStart=self.cursor;self.lastPaint=nil
  if self.tool=='RoomPaint' or self.tool=='RoomErase' then self:point() end
  self:setCapture(true);return true
 end
@@ -284,7 +378,7 @@ function E:submit(action,extra)
   if self.closed or result~='accept' then return end
   sequence=sequence+1;local nonce=tostring(getTimestampMs())..':'..sequence
   local args={action=action or draft.action,nonce=nonce,editKey=self.editKey,revision=self.revision,id=record and record.id,roomRevision=record and record.revision,
-   name=self.nameEntry:getInternalText(),rows=draft.geometry.rows,disconnected=self.disconnected,confirm=true,
+   name=self.nameEntry:getInternalText(),rows=draft.geometry.rows,roomType=self.roomType,designation=self.designation,disconnected=self.disconnected,confirm=true,
    ids=draft.ids,secondName=self.secondName:getInternalText(),secondRows=draft.second and draft.second.rows}
   for k,v in pairs(extra or {}) do args[k]=v end
   local submission={args=args,nextAt=0,time=getTimestampMs(),changePending=true};self.submission=submission;self:message('RoomSaving')
@@ -341,7 +435,7 @@ function E:closeEditor()
    if (result.status=='uncertain' or result.status=='timeout') and player and player.setHaloNote then player:setHaloNote(tr('RoomOutcomeUnknown')) end
   end)
  end
- self.closed=true;U.Dialog.close(self);self.detection=nil;self.readRetry=nil;self.down=false;self.first=nil;self.submission=nil;self.saved={};self.edgeCache={}
+ self.closed=true;U.Dialog.close(self);self.detection=nil;self.readRetry=nil;self.down=false;self.first=nil;self.submission=nil;self.saved={};self.savedShapes=nil;self.edgeCache={}
  self:setCapture(false);self:setWantKeyEvents(false);active[self.playerNum]=nil
  ISPanelJoypad.removeFromUIManager(self)
  if owner and not owner.removed then owner:setVisible(true) end
@@ -363,14 +457,15 @@ function E:updateSidebar()
  local geometry=saved and record.canEditGeometry==true
  local key=table.concat({tostring(saved),tostring(visitor),tostring(busy),tostring(split),tostring(dirty),
   tostring(self.advanced),tostring(geometry),tostring(count>0),tostring(self.revision~=nil),
-  tostring(self.refreshFailed),tostring(self.detection~=nil),tostring(history),tostring(future),self.sidebar.width,h},':')
+  tostring(self.roomType),tostring(self.designation),tostring(self.draft and self.draft.action),tostring(record and record.canConfigureRoom),tostring(self.refreshFailed),tostring(self.detection~=nil),tostring(history),tostring(future),self.sidebar.width,h},':')
  if self.layoutKey==key then return end;self.layoutKey=key
  local width=math.max(1,self.sidebar.width-32);local y=12
+ if self.list.itemheight~=math.max(24,U.Theme.metrics().font+8) then self:rebuildList() end
  local function place(widget,show,height)
   widget:setVisible(show)
   if show then U.Layout.place(widget,12,y,width,height);y=y+height+4 end
  end
- place(self.list,true,96);place(self.nameEntry,true,h)
+ place(self.list,true,144);place(self.nameEntry,true,h)
  place(self.secondName,split,h);place(self.accountEntry,visitor,h)
  if not visitor and self.accountEntry:isFocused() then self.accountEntry:unfocus() end
  for _,entry in ipairs(self.buttonRows) do
@@ -387,6 +482,8 @@ function E:updateSidebar()
   for i,button in ipairs(visible) do U.Layout.place(button,12+(i-1)*(w+4),y,w,h) end
   if #visible>0 then y=y+h+4 end
  end
+ self.buttons.RoomDesignation:setTitle(tr('RoomDesignationSummary',tr('RoomType_'..(self.roomType or 'unassigned')),tr('RoomRole_'..(self.designation or 'unassigned'))))
+ self.buttons.RoomDesignation:setEnable(not busy and self.draft~=nil and self.draft.action=='save' and (not saved or record.canConfigureRoom==true))
  self.buttons.Save:setTitle(tr(saved and 'RoomSaveChanges' or 'RoomSaveNext'))
  self.buttons.Save:setEnable(not busy and not self.detection and self.revision~=nil and count>0 and (not saved or dirty))
  self.buttons.RoomUndo:setEnable(not busy and history);self.buttons.RoomRedo:setEnable(not busy and future)
@@ -417,6 +514,15 @@ function E:createChildren()
   widget:initialise();widget:instantiate();self.sidebar:addChild(widget);return widget
  end
  self.list=add(U.ScrollList:new(12,12,200,96));self.list.itemheight=24
+ local drawItem=self.list.doDrawItem
+ if drawItem then self.list.doDrawItem=function(list,y,item,alt)
+  local full=item.text;local width=math.max(1,list.width-32);local font=U.Theme.metrics().font
+  if item.b47FullText~=full or item.b47FitWidth~=width or item.b47FitFont~=font then
+   item.b47FullText=full;item.b47FitWidth=width;item.b47FitFont=font;item.b47FitText=U.Renderer.fit(full,width,list.font)
+  end
+  item.text=item.b47FitText
+  local ok,result=pcall(drawItem,list,y,item,alt);item.text=full;if not ok then error(result) end;return result
+ end end
  self.list:setOnMouseDownFunction(self,function(editor,room) editor:select(room) end)
  self.list:setOverrideAButtonFunction(self,function(editor) local e=editor.list.items[editor.list.selected];if e then editor:select(e.item) end end)
  self.nameEntry=add(U.TextInput:new('',12,0,200,28));self.nameEntry:setMaxTextLength(96);self.nameEntry:setTooltip(tr('RoomNameHelp'))
@@ -432,10 +538,11 @@ function E:createChildren()
   self.buttonRows[#self.buttonRows+1]={when=when,controls=controls}
  end
  row('basic',{'RoomCreate',function() self:select(nil) end},{'RoomTools',E.tools})
- row('basic',{'RoomRedetect',E.detect})
+ row('basic',{'RoomSelect',E.selectTool},{'RoomRedetect',E.detect})
+ row('basic',{'RoomDesignation',E.designationMenu})
  row('basic',{'RoomUndo',function() self.draft:undo();changed(self) end},{'RoomRedo',function() self.draft:redo();changed(self) end})
- row('basic',{'RoomFloorDown',function() self.floor=math.max(-32,self.floor-1);self.cursor.z=self.floor;self.first=nil;self.edgeSource=nil end},
-  {'RoomFloorUp',function() self.floor=math.min(31,self.floor+1);self.cursor.z=self.floor;self.first=nil;self.edgeSource=nil end})
+ row('basic',{'RoomFloorDown',function() self:setFloor(self.floor-1) end},
+  {'RoomFloorUp',function() self:setFloor(self.floor+1) end})
  row('saved',{'RoomPermissions',E.permissions})
  row('visitor',{'RoomVisitor',E.visitorMenu},{'RoomHideVisitors',function() self.visitorEditing=false;self:updateSidebar() end})
  row('refresh',{'RoomReload',function() self:refresh() end})
@@ -443,11 +550,12 @@ function E:createChildren()
  row('advanced',{'RoomClear',function() self.draft:set(assert(G.normalize({})));changed(self) end})
  row('advanced',{'RoomDisconnectedToggle',function() self.disconnected=not self.disconnected;self:message(self.disconnected and 'RoomDisconnectedWarning' or 'RoomPreviewOnly') end})
  row('advancedSaved',{'RoomDuplicate',function()
-  if self.record and self.draft.action=='save' then local rows=self.draft.geometry.rows;local title=self.nameEntry:getInternalText();self:load({name=title,rows=rows});self.record=nil end
+  if self.record and self.draft.action=='save' then local rows=self.draft.geometry.rows;local title=self.nameEntry:getInternalText();self:load({name=title,rows=rows,roomType=self.roomType,designation=self.designation});self.record=nil end
  end},{'RoomCombine',E.combine,'geometry'})
  row('advancedGeometry',{'RoomDelete',function() if self.record then self:submit('delete') end end})
  row('basic',{'Save',function() self:submit() end},{'Done',E.requestClose})
  U.skin(self.buttons.Save,'button','primary');U.skin(self.buttons.RoomDelete,'button','destructive')
+ self.buttons.RoomDesignation:setTooltip(tr('RoomDesignationHelp'))
  self.buttons.RoomPermissions:setTooltip(tr('RoomSaveBeforePolicy'));self.buttons.RoomVisitor:setTooltip(tr('RoomAccountHelp'))
  local renderSidebar=self.sidebar.prerender
  self.sidebar.prerender=function(panel)
@@ -456,7 +564,8 @@ function E:createChildren()
   local lines={tr('RoomEditorTitle'),tr(self.record and 'RoomEditHelp' or 'RoomCreateHelp'),
    tr(self.tool or 'RoomAddRectangle'),tr('RoomCounts',self.floor,self.draft and self.draft.geometry.count or 0),self.status or ''}
   if (self.invalidCount or 0)>0 then lines[#lines+1]=tr('RoomInvalidCount',self.invalidCount) end
-  if self.overlayLimited then lines[#lines+1]=tr('RoomOverlayLimit') end
+  if self.tool=='RoomSelect' then local names={};for _,m in ipairs(self:roomsUnderCursor()) do names[#names+1]=m.label end;lines[#lines+1]=#names>0 and table.concat(names,', ') or tr('RoomSelectEmpty') end
+  if self.overlayLimited then lines[#lines+1]=tr('RoomFloorOverlayLimit') end
   if self.advanced then for _,key in ipairs({'RoomPolicyBoundary','RoomWorldHelp','RoomLegend','RoomLegendOther'}) do lines[#lines+1]=tr(key) end end
   local key=table.concat(lines,'\n')..':'..width..':'..U.Theme.metrics().font
   if self.textKey~=key then
@@ -501,9 +610,9 @@ function E:update()
  end
  if self.closed then return end
  if self.fetch and #self.fetch>0 and getTimestampMs()>=(self.nextFetch or 0) and not self.fetchPending and not self:isBusy() then
-  local meta=table.remove(self.fetch,1);local generation=self.refreshGeneration;self.fetchPending=true;self.nextFetch=getTimestampMs()+500
+  local meta=table.remove(self.fetch,1);local generation=self.overlayGeneration;self.fetchPending=true;self.nextFetch=getTimestampMs()+500
   self:request('roomGet',{id=meta.id,roomRevision=meta.revision},function(r)
-   if generation~=self.refreshGeneration then return end
+   if generation~=self.overlayGeneration then return end
    self.fetchPending=false;if r.status=='ok' then self.saved[meta.id]=r.room;self.edgeSource=nil end
   end)
  end
@@ -543,7 +652,7 @@ function E:prerender()
   if added then lines(added,{.3,.9,.4,.8}) end;if removed then lines(removed,{1,.2,.2,.8}) end
   local overlap={}
   for id,room in pairs(self.saved) do if not self.record or id~=self.record.id then
-   local other=assert(G.normalize(room.rows));lines(other,{.3,.7,.9,.45})
+   local other=self:savedShape(id,room);lines(other,{.3,.7,.9,.45})
    for _,t in ipairs(self.draft.geometry.tiles) do if G.contains(other,t.x,t.y,t.z) then overlap[G.key(t.x,t.y,t.z)]=t end end
   end end
   local tiles={};for _,t in pairs(overlap) do tiles[#tiles+1]=t end
@@ -557,6 +666,7 @@ function E:prerender()
   self:drawWorldLine(tile.x+.25,tile.y+.25,tile.z,tile.x+.75,tile.y+.75,tile.z,1,1,.2,.2,1)
   self:drawWorldLine(tile.x+.75,tile.y+.25,tile.z,tile.x+.25,tile.y+.75,tile.z,1,1,.2,.2,1)
  end end
+ if self.tool=='RoomSelect' then return end
  local p=self.cursor;local c=allowed(self.player,getCell():getGridSquare(p.x,p.y,p.z)) and {1,.8,.2} or {1,.2,.2}
  local a=self.first or self.down and self.dragStart or p
  local x1,y1=math.min(a.x,p.x),math.min(a.y,p.y);local x2,y2=math.max(a.x,p.x)+1,math.max(a.y,p.y)+1

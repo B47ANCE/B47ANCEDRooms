@@ -33,6 +33,10 @@
     {
       "path": "docs/EDITOR_FLOW.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
+      "path": "docs/ROOM_DESIGNATIONS.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
     }
   ],
   "changelog": {

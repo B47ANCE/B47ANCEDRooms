@@ -1,9 +1,11 @@
-# Version 0.2.0-dev.3
+# Version 0.2.0-dev.4
 
 MP testing build - dedicated multiplayer NOT TESTED
 
-Streamline designation: Save & Next creates a room and advances to a blank same-floor draft. Save Changes retains/reloads the selected room. Routine create/rename uses one action; destructive geometry, deletion, merge/split, incomplete/disconnected previews and permission/ownership changes retain confirmation.
+Development iteration, not uploaded by this task.
 
-Done protects unsaved work. The sidebar shows controls relevant to the current state, advanced operations start collapsed, and visitor fields appear only while managing visitors. Pending writes protect inputs, and failed reads provide recovery controls.
-
-Offline tests pass. Actual UI/controller/focus and dedicated multiplayer remain NOT TESTED; G7 and stable G8 BLOCKED. Development notes only: no upload is included in this UI request. The published Workshop build remains 0.2.0-dev.2.
+- Select saved room outlines without drawing; overlapping rooms offer a choice and names under the cursor appear in the sidebar.
+- Group the building room list by actual floor, show type/storage role and prioritize current-floor outlines.
+- Add 14 room types and Primary, Secondary or Unassigned storage labels, saved with ordinary room edits. Existing rooms default to Unassigned.
+- Server-validated persistence and consumer queries use designated rooms only. No automatic inventory routing or quotas.
+- Offline source/regression checks pass. Native UI, save/load, paired integration and dedicated acceptance remain NOT TESTED; G7 and stable G8 BLOCKED.

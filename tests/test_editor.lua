@@ -15,6 +15,7 @@ function ISPanelJoypad:addScrollBars() end
 function ISPanelJoypad:setCapture(v) self.capture=v end
 function ISPanelJoypad:onJoypadDirRight() end
 function ISScrollingListBox:setOverrideAButtonFunction(target,fn) self.overrideTarget=target;self.overrideA=fn end
+function ISScrollingListBox:doDrawItem(y,item,alt) self.lastDrawn=item.text;return y+item.height end
 local uuid=0;getRandomUUID=function() uuid=uuid+1;return '22222222-2222-2222-2222-'..string.format('%012d',uuid) end
 getTimestamp=function() return math.floor(getTimestampMs()/1000) end
 f.player.isDead=function() return false end
@@ -91,6 +92,7 @@ editor:onJoypadDown(Joypad.AButton);editor:onJoypadDirRight();editor:onJoypadDow
 assert(editor.draft.geometry.count==0,'controller rectangle did not match mouse geometry')
 editor.draft:undo();assert(editor.draft.geometry.count==2)
 editor.draft:redo();assert(editor.draft.geometry.count==0);editor.draft:undo()
+editor.roomType='workshop';editor.designation='primary'
 editor.nameEntry:setText('Workshop');confirmation=nil;editor:submit()
 assert(editor.submission and not confirmation,'routine create still required an extra confirmation')
 Q.Registry.tick();f.advance(600);editor:update()
@@ -101,6 +103,7 @@ local lib=ModData.getOrCreate('B47ANCEDRooms').customRooms
 assert(lib and lib.revision==1)
 assert(editor.revision==1 and #editor.metadata==1 and editor.metadata[1].name=='Workshop','saved list/lease did not refresh')
 local firstId=editor.metadata[1].id
+assert(lib.records[firstId].roomType=='workshop' and lib.records[firstId].designation=='primary','create lost draft designation')
 -- Save the next room through the same live editor and obtain a distinct identity.
 f.advance(3000);editor:apply({x=2,y=0,z=0},{x=2,y=0,z=0});editor.nameEntry:setText('Pantry')
 editor:submit();assert(editor.submission)
@@ -139,7 +142,7 @@ local live=E.open(0,p)
 local function listReply(index,revision,rooms)
  lists[index].callback({status='ok',rooms=rooms or {},revision=revision,editKey='lease:'..revision,options={maxTiles=1024,doorways=true}})
 end
-listReply(1,10,{{id='prior',revision=1,label='Prior'}})
+listReply(1,10,{{id='prior',revision=1,label='Prior',floors={0}}})
 live:update();assert(#gets==1 and live.fetchPending)
 local oldOverlay=gets[1]
 live.floor=1;live.cursor.z=1;live.draft:set(assert(Q.Geometry.normalize({{1,0,0,0}})));live.nameEntry:setText('Upstairs')
@@ -203,6 +206,11 @@ for _=1,20 do Q.Registry.tick();f.advance(600);flow:update();if not flow:isBusy(
 assert(flow.record and flow.record.id==firstId and flow.record.name=='Workshop Renamed','edit reset selection or kept stale room metadata')
 assert(flow.draft.geometry.count==2 and not flow:isDirty() and flow.status==getText('UI_B47Rooms_RoomSaved'))
 assert(ModData.getOrCreate('B47ANCEDRooms').customRooms.records[firstId].name=='Workshop Renamed')
+assert(flow.roomType=='workshop' and flow.designation=='primary','rename/reload erased saved designation')
+f.advance(3000);flow.roomType='kitchen';flow.designation='secondary';confirmation=nil;flow:submit()
+assert(flow.submission and not confirmation,'metadata-only Save Changes did not use ordinary save')
+for _=1,20 do Q.Registry.tick();f.advance(600);flow:update();if not flow:isBusy() then break end end
+assert(flow.record.id==firstId and flow.roomType=='kitchen' and flow.designation=='secondary' and not flow:isDirty(),'designation save lost selected identity or reloaded stale labels')
 flow:detect();flow:updateSidebar();assert(flow.detection and not flow.buttons.Save.enable)
 flow:submit();assert(not flow.submission,'unfinished detection was submitted as a complete preview')
 flow.detection=nil
@@ -262,4 +270,52 @@ managed:refresh();roomLists[4].callback({status='rateLimited'});managed:updateSi
 assert(managed.buttons.RoomReload:isVisible() and managed.buttons.RoomReload.enable,'failed refresh had no recovery control')
 managed.buttons.RoomReload.onclick(managed);replyList(5,101);managed:updateSidebar();assert(not managed.buttons.RoomReload:isVisible())
 managed:requestClose();assert(managed.closed and p:isVisible());Q.Client.request=request
+-- Floor groups and selection operate on bounded cached snapshots, never drawing.
+local navLists,navGets={},{}
+Q.Client.request=function(_,command,args,callback)
+ if command=='roomList' then navLists[#navLists+1]=callback
+ elseif command=='roomGet' then navGets[#navGets+1]={args=args,callback=callback}
+ else error('outline selection issued a write '..command) end
+end
+local nav=E.open(0,p);local metadata={}
+for i=1,10 do metadata[#metadata+1]={id='ground:'..i,name='Ground '..i,label='Ground '..i,revision=1,floors={0},count=1} end
+metadata[#metadata+1]={id='upper',name='Upper',label='Upper',revision=2,floors={2},count=1,roomType='pantry',designation='secondary'}
+metadata[#metadata+1]={id='stairs',name='Stairs',label='Stairs',revision=3,floors={0,2},count=2}
+navLists[1]({status='ok',revision=10,editKey='navigation',rooms=metadata,options={maxTiles=1024}})
+assert(nav.list.items[1].item.header and nav.list.items[1].item.listFloor==0)
+assert(#nav.list.items==15 and nav.overlayLimited and #nav.fetch==8)
+local text=nav.list.items[2].text;nav.list:doDrawItem(0,nav.list.items[2],false)
+assert(nav.list.items[2].text==text and #nav.list.lastDrawn*7<=nav.list.width-32 and nav.list.items[2].tooltip,'long list labels spilled or lost full tooltip')
+local multi=0;for _,row in ipairs(nav.list.items) do if row.item.id=='stairs' then multi=multi+1 end end;assert(multi==2)
+nav:update();assert(navGets[1].args.id=='ground:1');local staleFloor=navGets[1].callback
+nav:select({header=true,listFloor=2});assert(nav.floor==2 and nav.list.items[1].item.listFloor==2 and not nav.overlayLimited)
+assert(#nav.fetch==2 and nav.fetch[1].id=='upper','current-floor overlays were not prioritized')
+staleFloor({status='ok',room={id='ground:1',rows={{0,0,0,0}}}});assert(nav.saved['ground:1']==nil,'stale other-floor overlay was admitted')
+nav.saved.upper={id='upper',ordinal=11,name='Upper',revision=2,rows={{2,0,0,0}},roomType='pantry',designation='secondary',canConfigureRoom=true}
+nav.saved.stairs={id='stairs',ordinal=12,name='Stairs',revision=3,rows={{0,1,0,0},{2,0,0,0}},canConfigureRoom=true}
+nav.cursor={x=0,y=0,z=2};nav:selectTool();local empty=nav.draft.geometry
+local rootMenu;ISContextMenu.get=function(...) local menu=getMenu(...);if not rootMenu then rootMenu=menu end;return menu end
+nav:onJoypadDown(Joypad.AButton);ISContextMenu.get=getMenu
+assert(rootMenu and #rootMenu.options==2 and nav.draft.geometry==empty and not nav.first,'overlap selection drew or chose an arbitrary room')
+choice=rootMenu.options[1];choice.callback(choice.target)
+local read=navGets[#navGets];assert(read.args.id=='upper');read.callback({status='ok',room=nav.saved.upper})
+assert(nav.record.id=='upper' and nav.tool=='RoomSelect' and nav.roomType=='pantry' and nav.designation=='secondary')
+local previousReads=#navGets;nav.saved.stairs=nil;cursorX=0;cursorY=0
+nav:onMouseDown(100,100);assert(not nav.capture and #navGets==previousReads+1)
+nav:onMouseUp(100,100);assert(not nav.first,'Select mouse-up started a rectangle')
+navGets[#navGets].callback({status='ok',room=nav.saved.upper})
+local selected=nav.draft.geometry;nav:apply({x=1,y=1,z=2},{x=1,y=1,z=2});assert(nav.draft.geometry==selected)
+nav:rebuildList();assert(nav.list.items[nav.list.selected].item.id=='upper')
+-- Type/role menu changes only draft metadata and participates in dirty guards.
+rootMenu=nil;ISContextMenu.get=function(...) local menu=getMenu(...);if not rootMenu then rootMenu=menu end;return menu end
+nav:designationMenu();ISContextMenu.get=getMenu
+assert(rootMenu and #rootMenu.options==2 and #rootMenu.options[1].sub.options==15)
+choice=rootMenu.options[1].sub.options[2];choice.callback(choice.target)
+choice=rootMenu.options[2].sub.options[2];choice.callback(choice.target)
+nav:updateSidebar();assert(nav.roomType=='kitchen' and nav.designation=='primary' and nav:isDirty() and nav.buttons.Save.enable)
+local reads=#navGets;nav:select(metadata[12]);assert(confirmation);confirmation.callback('cancel')
+assert(#navGets==reads and nav.record.id=='upper' and nav.roomType=='kitchen','cancel selection lost unsaved designation')
+nav:requestClose();confirmation.callback('cancel');assert(not nav.closed)
+nav:requestClose();confirmation.callback('accept');assert(nav.closed)
+Q.Client.request=request
 print('PASS OFFLINE room editor: creation/editing separation, quick create/rename, retained geometry/policy selection, contextual/advanced/visitor controls, busy guards, dirty Done/Escape, destructive/incomplete review, read recovery, consecutive saves, zoom and modal/parent lifecycle')

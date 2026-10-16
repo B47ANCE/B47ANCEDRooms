@@ -1,19 +1,27 @@
 # Contextual room editor flow
 
-Project Version: 0.2.0-dev.3
+Project Version: 0.2.0-dev.4
 
-[VERIFIED source] Compatible PATCH-scope client UI refinement of published .2. Creating a
+[VERIFIED source] Current .4 extends the .3 contextual editor with compatible feature additions; see ROOM_DESIGNATIONS.md for the MINOR-scope rationale, API/persistence details and current evidence. Creating a
 room advances to a blank draft on the same floor; editing retains and reloads
 the selected room when the actor remains authorized. Permissions/visitor changes
 retain the selected room and visitor account. Deletion returns to a blank draft. Routine creation/rename uses one save action, with additional
 confirmation for geometry replacement, deletion, merges/splits, incomplete or
 disconnected previews and ownership/permission changes. Done protects unsaved
 work. Contextual controls and a collapsed Advanced section reduce clutter;
-visitor fields appear only during visitor management. No room types or storage
-roles from the separate PR are integrated in this slice.
+visitor fields appear only during visitor management. Select Room uses loaded saved
+geometry with overlap choices and no drawing; names under the cursor appear in
+the sidebar. The list groups actual saved floors, shows type/storage role and
+prioritizes the active floor. Type and Primary/Secondary/Unassigned choices are
+draft metadata committed by the existing Save action. Duplicate retains them;
+split copies them and merge requires matching values. Dirty selection/Done
+protection includes these fields. Eight current-floor overlays plus the selected
+room bound caching and reads; use the list for other saved rooms.
 
-Server-owned leases/revisions, policy/geometry validation, APIs/protocol/schema,
-persistence and sandbox configuration remain unchanged. Client convenience never
+Server-owned leases/revisions and policy/geometry validation remain authoritative.
+API/protocol 1 and schema 2 retain their numbers; new optional metadata fields,
+designation and target-anchored storage APIs are documented in ROOM_DESIGNATIONS.md.
+Sandbox configuration is unchanged; per-room metadata is explicit server state. Client convenience never
 grants authority. No new sandbox setting is warranted for presentation controls.
 No package, deployment, upload or game/server launch is authorized by this task.
 
@@ -40,7 +48,7 @@ git diff --check
 ```
 
 The version checker passes all declared current source mirrors but fails the
-unchanged published .2 ZIP filename and embedded mod.info against .3. This blocks
+unchanged published .2 ZIP filename and embedded mod.info against .4. This blocks
 release artifact checks; no package was rebuilt, relabeled or deleted.
 
 [VERIFIED source] Installed Steam build 25485521, game target 42.21.0: native
@@ -56,7 +64,7 @@ is modified. Source SHA-256:
 name and confirm it stays selected; review/cancel a boundary replacement and
 deletion; open ownership/visitor controls, save a grant and retain the selected
 room/account; verify Advanced collapse and Done/Escape unsaved protection with
-mouse, controller, small viewport and larger UI fonts. Test rejection, delayed
+mouse, controller, small viewport and larger UI fonts. Also test outline overlap selection, floor switching, label tooltips and type/role persistence through save/reload/rejoin/restart. Test rejection, delayed
 acknowledgements, disconnect/close and two-client edits on disposable saves.
 Actual native UI/controller/focus and dedicated G7 remain
 NOT TESTED/BLOCKED; stable G8 BLOCKED. Existing published .2 artifacts and its
