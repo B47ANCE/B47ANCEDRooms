@@ -1,0 +1,99 @@
+VERSION = 1,
+option B47ANCEDRooms.Enabled
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_Enabled,
+}
+
+option B47ANCEDRooms.RoomTileLimit
+{
+    type = integer,
+    min = 64,
+    max = 4096,
+    default = 1024,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_RoomTileLimit,
+}
+
+option B47ANCEDRooms.RoomEditRange
+{
+    type = integer,
+    min = 5,
+    max = 128,
+    default = 30,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_RoomEditRange,
+}
+
+option B47ANCEDRooms.RoomDoorways
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_RoomDoorways,
+}
+
+option B47ANCEDRooms.DelegatedRooms
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_DelegatedRooms,
+}
+
+
+option B47ANCEDRooms.CleanBuildingEnabled
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_CleanBuildingEnabled,
+}
+
+option B47ANCEDRooms.CleaningBorrowSupplies
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_CleaningBorrowSupplies,
+}
+
+option B47ANCEDRooms.CleaningReturnSupplies
+{
+    type = boolean,
+    default = true,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_CleaningReturnSupplies,
+}
+
+option B47ANCEDRooms.CleaningBleachML
+{
+    type = integer,
+    min = 1,
+    max = 100,
+    default = 10,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_CleaningBleachML,
+}
+
+option B47ANCEDRooms.CleaningBuildingTileLimit
+{
+    type = integer,
+    min = 128,
+    max = 16384,
+    default = 4096,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_CleaningBuildingTileLimit,
+}
+
+option B47ANCEDRooms.CleaningTransferSeconds
+{
+    type = integer,
+    min = 1,
+    max = 10,
+    default = 1,
+    page = B47ANCEDRooms,
+    translation = B47ANCEDRooms_CleaningTransferSeconds,
+}

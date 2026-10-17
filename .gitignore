@@ -1,4 +1,5 @@
 dist/
+workshop/
 .codex/
 .test-deps/
 __pycache__/

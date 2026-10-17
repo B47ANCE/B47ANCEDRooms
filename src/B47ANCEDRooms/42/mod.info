@@ -1,6 +1,8 @@
 name=B47ANCE'd Rooms
 id=B47ANCEDRooms
 author=B47ANCE
-modversion=0.1.0-dev.1
+modversion=0.2.0-dev.5
 versionMin=42.21.0
 description=Standalone room designation and server-owned room policy APIs. Development source; dedicated multiplayer NOT TESTED. Room policies do not claim to secure unrelated vanilla actions.
+icon=icon.png
+poster=poster.png

@@ -3,12 +3,48 @@
   "canonical": "VERSION",
   "mirrors": [
     {
+      "path": "docs/WORKSHOP_DESCRIPTION.md",
+      "pattern": "^Version (?P<version>\\S+)\\.$"
+    },
+    {
+      "path": "docs/WORKSHOP_CHANGELOG.md",
+      "pattern": "^# Version (?P<version>\\S+)$"
+    },
+    {
+      "path": "docs/CLEANING_API.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
       "path": "README.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
     },
     {
       "path": "src/B47ANCEDRooms/42/mod.info",
       "pattern": "^modversion=(?P<version>\\S+)$"
+    },
+    {
+      "path": "docs/ROOMS_API.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
+      "path": "src/B47ANCEDRooms/42/media/lua/shared/B47ANCEDRooms/Identity.lua",
+      "pattern": "version='(?P<version>[0-9][^']*)'"
+    },
+    {
+      "path": "docs/EDITOR_FLOW.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
+      "path": "docs/ROOM_DESIGNATIONS.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
+      "path": "docs/WORKFLOW_COMPLETION.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
+    },
+    {
+      "path": "docs/WORKSHOP_WORKFLOW_PUBLICATION.md",
+      "pattern": "^Project Version: (?P<version>\\S+)$"
     }
   ],
   "changelog": {
@@ -23,7 +59,7 @@
         "zip_members": [
           {
             "member": "B47ANCEDRooms/42/mod.info",
-            "pattern": "^modversion=(?P<version>\\S+)$"
+            "pattern": "^modversion=(?P<version>[^\\r\\n]+)\\r?$"
           }
         ]
       }
@@ -36,5 +72,46 @@
       "reason": "Native game compatibility, independent of project SemVer"
     }
   ],
-  "historical": []
+  "historical": [
+    {
+      "reference": "docs/WORKSHOP_PUBLICATION.md",
+      "reason": "Immutable 0.1.0-dev.1 publication/distribution evidence, not proof of current source or runtime correctness."
+    },
+    {
+      "reference": "dist/workshop-publish/0.1.0-dev.2-outline/previous-current and preservation-ledger.json",
+      "reason": "Prior 0.1.0-dev.1 published artifacts preserved with exact hashes during explicitly authorized test-upload preparation. No historical package was relabeled or deleted."
+    },
+    {
+      "reference": "docs/WORKSHOP_OUTLINE_PUBLICATION.md and docs/OUTLINE_ZOOM_FIX.md",
+      "reason": "Evidence tied to published 0.1.0-dev.2 and its source-fix checkpoint; not current popup validation."
+    },
+    {
+      "reference": "dist/workshop-publish/0.1.0-dev.3-ui/previous-current and preservation-ledger.json",
+      "reason": "Published 0.1.0-dev.2 ZIP/provenance preserved with exact hashes during authorized .3 test-upload preparation. No historical package was relabeled or deleted."
+    },
+    {
+      "reference": "docs/WORKSHOP_UI_PUBLICATION.md and docs/UI_AUDIT.md",
+      "reason": "Published 0.1.0-dev.3 UI/distribution evidence; not validation of custom-room-only development."
+    },
+    {
+      "reference": "dist/workshop-publish/0.2.0-dev.1-designated/previous-current and preservation-ledger.json",
+      "reason": "Published 0.1.0-dev.3 package, checksum and provenance preserved by exact hashes during authorized 0.2 test upload preparation; no deletion or relabeling."
+    },
+    {
+      "reference": "docs/WORKSHOP_DESIGNATED_PUBLICATION.md",
+      "reason": "Immutable published 0.2.0-dev.1 distribution evidence; does not validate subsequent keep-editor-open UI changes."
+    },
+    {
+      "reference": "dist/workshop-publish/0.2.0-dev.2-keep-open/previous-current and preservation-ledger.json",
+      "reason": "Published 0.2.0-dev.1 ZIP, checksum and provenance preserved by exact hashes during explicitly authorized .2 Workshop test upload preparation; no deletion or relabeling."
+    },
+    {
+      "reference": "docs/WORKSHOP_KEEP_OPEN_PUBLICATION.md",
+      "reason": "Published 0.2.0-dev.2 distribution/keep-open evidence, not validation of the subsequent contextual editor flow."
+    },
+    {
+      "reference": "dist/workshop-publish/0.2.0-dev.5-workflow/previous-current and preservation-ledger.json",
+      "reason": "Published .2 ZIP, checksum and provenance preserved unchanged by exact hashes during explicitly authorized .5 test upload; no deletion or relabeling."
+    }
+  ]
 }
