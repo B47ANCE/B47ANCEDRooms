@@ -1,6 +1,6 @@
 # B47ANCE'd Rooms
 
-Project Version: 0.2.0-dev.5
+Project Version: 0.2.0-dev.6
 
 ![B47ANCE'd Rooms project thumbnail](artwork/thumbnail.png)
 
@@ -23,3 +23,6 @@ Run `python tests/run_tests.py` and `python scripts/check_versions.py --root . -
 The historical **0.2.0-dev.2** keep-open fix is historical distribution evidence: upload, live metadata and fresh 83-file download were verified, and Steam restarted gracefully. Desktop subscription was still awaiting its Steam-managed update at that checkpoint. See [the .2 publication record](docs/WORKSHOP_KEEP_OPEN_PUBLICATION.md). This does not certify the current .5 workflow development.
 
 The historical **0.2.0-dev.1** Workshop testing build included the custom-room-only redesign and retains the prior UI/outline fixes and supplied thumbnail. SteamCMD upload, live metadata, fresh 83-file download and desktop subscription parity are verified; Steam restarted gracefully. Exact commit, package hash and evidence are in the [historical .1 publication record](docs/WORKSHOP_DESIGNATED_PUBLICATION.md). Historical [UI audit](docs/UI_AUDIT.md), [UI publication](docs/WORKSHOP_UI_PUBLICATION.md), [outline publication](docs/WORKSHOP_OUTLINE_PUBLICATION.md) and [first publication](docs/WORKSHOP_PUBLICATION.md) retain their original evidence. [Artwork provenance](artwork/README.md) preserves the original, export and previous fallback. Historical distribution success is not current source or runtime verification.
+
+
+Current integration 0.2.0-dev.6: see [allocation integration and evidence](docs/ALLOCATION_INTEGRATION.md).

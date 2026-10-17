@@ -3,7 +3,7 @@
 ## Overview
 Standalone room designation and server-owned room permissions for Project Zomboid Build 42.21.0.
 
-Version 0.2.0-dev.5.
+Version 0.2.0-dev.6.
 
 MP testing build - dedicated multiplayer NOT TESTED
 

@@ -1,6 +1,6 @@
 # Contextual room editor flow
 
-Project Version: 0.2.0-dev.5
+Project Version: 0.2.0-dev.6
 
 [VERIFIED source] Current .5 extends the .3 contextual editor and .4 designation/navigation work with compatible feature additions; see ROOM_DESIGNATIONS.md for the MINOR-scope rationale, API/persistence details and current evidence. Creating a
 room advances to a blank draft on the same floor; editing retains and reloads

@@ -43,7 +43,7 @@
       "pattern": "^Project Version: (?P<version>\\S+)$"
     },
     {
-      "path": "docs/WORKSHOP_WORKFLOW_PUBLICATION.md",
+      "path": "docs/ALLOCATION_INTEGRATION.md",
       "pattern": "^Project Version: (?P<version>\\S+)$"
     }
   ],
@@ -112,6 +112,10 @@
     {
       "reference": "dist/workshop-publish/0.2.0-dev.5-workflow/previous-current and preservation-ledger.json",
       "reason": "Published .2 ZIP, checksum and provenance preserved unchanged by exact hashes during explicitly authorized .5 test upload; no deletion or relabeling."
+    },
+    {
+      "reference": "docs/WORKSHOP_WORKFLOW_PUBLICATION.md",
+      "reason": "Exact published 0.2.0-dev.5 distribution receipt preserved; never relabeled as the current .6 development source."
     }
   ]
 }
