@@ -74,3 +74,32 @@ A read-only check confirms its subscribed 84 runtime files remain identical to
 the published UI build. No game/server launch, SP deployment, forced termination
 or other project change occurred. Native UI/gameplay and dedicated multiplayer
 remain NOT TESTED; G7 BLOCKED / NOT TESTED and stable G8 BLOCKED.
+
+## Transparent mod icon — 0.2.0-dev.7
+
+Selected by the user on October 18, 2026 for the mod icon. Built-in imagegen
+edited source/rooms-thumbnail-original.png to isolate the room subject, remove
+all lettering, background and external shadow, and retain genuine transparent
+alpha. The full-size generated PNG is preserved at source/rooms-icon-transparent.png.
+It is a generated interpretation of the supplied artwork, not a pixel-exact crop.
+The complete room, door, window, cabinet, floor and green outline were visually
+reviewed. The prompt requested the original pixel-art design and crisp edges,
+the complete room centered with transparent padding, and no text, fill, glow,
+shadow, added objects or clipped edges.
+
+The production export at ../src/B47ANCEDRooms/42/icon.png is 64x64 RGBA, matching
+the prior icon slot. System.Drawing HighQualityBicubic/HighQuality pixel-offset
+resampling exported the generated source without compositing a background.
+All four corners are transparent; the alpha range is 0–255. Prior icon bytes
+are preserved in history/team-mod-icon-64.png. Source/history files are outside
+the runtime package. No packaging or fallback-selection changes are required.
+
+| File | SHA-256 |
+|---|---|
+| source/rooms-icon-transparent.png (1254x1254 RGBA) | 94aee1a977c64c2d74c5d4995f25d9522923a1e7e94d56370bb8dd26c831322a |
+| ../src/B47ANCEDRooms/42/icon.png (64x64 RGBA) | 85c2071045b20eae12712177bf0ec69273ae363a12c13d8575e5f4a2c002edb0 |
+| history/team-mod-icon-64.png (64x64 RGB) | 60e2a193a6c1e1190941e6c342ec23c673a561dbed895c80067fe2b89c7f7e83 |
+
+The selected thumbnail SHA-256 remains 9602702443b0b1a92f9ed35e48e927fdd92d3e7d05d4789917a0edba2ed26668.
+The runtime poster and original thumbnail source remain byte-identical to the
+parent commit. Native in-game icon rendering remains NOT TESTED.

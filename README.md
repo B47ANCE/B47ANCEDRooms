@@ -1,8 +1,10 @@
 # B47ANCE'd Rooms
 
-Project Version: 0.2.0-dev.6
+Project Version: 0.2.0-dev.7
 
 ![B47ANCE'd Rooms project thumbnail](artwork/thumbnail.png)
+
+The mod icon uses the room subject on a transparent background, without text. The Workshop thumbnail and runtime poster retain their existing artwork. See [artwork provenance](artwork/README.md) and [current icon publication checks](docs/WORKSHOP_ICON_PUBLICATION.md).
 
 Standalone Lua-only room designation and server-owned permissions for Project Zomboid Build 42.21.0. Mod ID **B47ANCEDRooms**; existing [Workshop item 3820077442](https://steamcommunity.com/sharedfiles/filedetails/?id=3820077442). Quartermaster is an optional consumer, never a Rooms dependency.
 
@@ -25,4 +27,4 @@ The historical **0.2.0-dev.2** keep-open fix is historical distribution evidence
 The historical **0.2.0-dev.1** Workshop testing build included the custom-room-only redesign and retains the prior UI/outline fixes and supplied thumbnail. SteamCMD upload, live metadata, fresh 83-file download and desktop subscription parity are verified; Steam restarted gracefully. Exact commit, package hash and evidence are in the [historical .1 publication record](docs/WORKSHOP_DESIGNATED_PUBLICATION.md). Historical [UI audit](docs/UI_AUDIT.md), [UI publication](docs/WORKSHOP_UI_PUBLICATION.md), [outline publication](docs/WORKSHOP_OUTLINE_PUBLICATION.md) and [first publication](docs/WORKSHOP_PUBLICATION.md) retain their original evidence. [Artwork provenance](artwork/README.md) preserves the original, export and previous fallback. Historical distribution success is not current source or runtime verification.
 
 
-Current integration 0.2.0-dev.6: see [allocation integration and evidence](docs/ALLOCATION_INTEGRATION.md).
+Allocation integration introduced in 0.2.0-dev.6: see [allocation integration and evidence](docs/ALLOCATION_INTEGRATION.md).

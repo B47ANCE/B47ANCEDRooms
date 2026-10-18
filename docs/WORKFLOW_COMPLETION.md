@@ -1,6 +1,6 @@
 # Rooms workflow completion and validation
 
-Project Version: 0.2.0-dev.6
+Project Version: 0.2.0-dev.7
 
 Compatible MINOR-scope additions in the unreleased 0.2 line, from dev.4 to dev.5;
 expected eventual release 0.2.0 remains subject to runtime/release gates. Source

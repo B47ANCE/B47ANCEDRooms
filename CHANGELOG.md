@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.0-dev.7]
+- Compatible PATCH-scope presentation update within the 0.2 prerelease line: replace only the mod icon with a transparent, text-free room derived from the selected thumbnail. Preserve the Workshop thumbnail and runtime poster byte-for-byte; retain full-size icon source and previous icon. No gameplay, API, protocol, save or sandbox changes.
+- Explicitly authorized existing-item Workshop MP test distribution, including the previously merged .6 allocation-provider regressions. Offline/package validation and publication receipts are recorded in docs/WORKSHOP_ICON_PUBLICATION.md. Native UI and dedicated multiplayer remain NOT TESTED; G7/stable G8 BLOCKED.
+
 ## [0.2.0-dev.6]
 
 Reconcile the old designation PR with the already implemented designated-UUID-only APIs. Preserve the current room editor, policy copying, cleaning permissions and all runtime behavior. Add provider regressions for complete-footprint/native-denial/unloaded/client/disabled checks and copied geometry/metadata. Native room overrides remain removed. General API/protocol 1 and registry schema 2 are unchanged; native/dedicated NOT TESTED, G7/stable G8 BLOCKED.
