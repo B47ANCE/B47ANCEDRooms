@@ -48,3 +48,36 @@ PNG size/alpha/corners and the unchanged thumbnail SHA PASS. Source inspection
 confirms no gameplay behavior changed. GitHub main has no branch-protection
 required checks and this repository has no CI workflow; offline checks do not
 claim a GitHub CI pass. The icon branch is based on freshly verified main.
+
+## Upload attempt — authentication blocked
+
+[VERIFIED GitHub] PR #3 was merged into public main on October 18, 2026.
+Release source commit: c0a4a2374fd98e833caaec8e1c0f19810c118266.
+Remote main and the clean release checkout matched this SHA before staging.
+No Rooms PRs remained open after the merge.
+
+[TESTED offline] prepare_workshop.py PASS: all 85 committed source, package and
+stage files match; rendered description is 6503 UTF-8 bytes with real paragraph
+breaks and the required MP testing label. VDF App ID, existing item identity,
+public visibility, source URL, preview and package hashes PASS. Pre-upload live
+metadata confirmed the existing public item. The staged preview retains SHA-256
+9602702443b0b1a92f9ed35e48e927fdd92d3e7d05d4789917a0edba2ed26668.
+Target game 42.21.0; installed Steam build 25485521.
+
+[BLOCKED upload] SteamCMD exited 5 at 2026-10-18T10:24:56Z and reported
+"Cached credentials not found" / "No cached credentials and @NoPromptForPassword
+is set". No Committing update...Success result occurred. Version .7 is NOT
+published; no subscription/download/runtime acceptance is claimed. The existing
+item was not replaced or recreated. Steam desktop was not restarted.
+
+The inspected uploader performs no Steam desktop restart, game/server launch or
+local deployment. The user must restore SteamCMD authentication locally; no
+password or Steam Guard code is requested in chat or written to project files.
+Retry the same validated source/package and existing item after authentication,
+retaining this failed attempt's private log rather than overwriting it.
+
+Ignored local evidence is under dist/workshop-publish/0.2.0-dev.7-icon/submission:
+release-manifest.json, submission.vdf, stage and steamcmd-upload.log. The matching
+ZIP/checksum/provenance remain in dist/current. Logs, VDFs and credentials are
+not committed. G7/stable G8 remain BLOCKED; authentication recovery does not
+provide runtime evidence.
