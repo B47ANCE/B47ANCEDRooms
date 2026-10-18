@@ -1,6 +1,6 @@
 # Room types, storage roles and navigation
 
-Project Version: 0.2.0-dev.6
+Project Version: 0.2.0-dev.7
 
 [VERIFIED source] MINOR-scope compatible feature additions within the existing
 unreleased 0.2 line: 0.2.0-dev.3 to 0.2.0-dev.5; expected eventual release 0.2.0
