@@ -3,9 +3,11 @@
 ## Overview
 Standalone room designation and server-owned room permissions for Project Zomboid Build 42.21.0.
 
-Version 0.2.0-dev.7.
+Version 0.2.0-dev.8.
 
 MP testing build - dedicated multiplayer NOT TESTED
+
+Paint/Erase mouse drags preview and apply the filled rectangle once on release, with one undo step. This dev.8 source change awaits native visual and multiplayer testing.
 
 Save & Next creates a room and starts the next blank draft on the same floor. Save Changes retains and reloads the selected room. Done protects unsaved work. Routine create/rename uses one save action; destructive, incomplete and permission/ownership operations retain confirmation. Saved-room controls appear when relevant, advanced operations are collapsed, and visitor fields appear only while managing visitors.
 

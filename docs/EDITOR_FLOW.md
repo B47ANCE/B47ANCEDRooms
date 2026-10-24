@@ -1,6 +1,8 @@
 # Contextual room editor flow
 
-Project Version: 0.2.0-dev.7
+Project Version: 0.2.0-dev.8
+
+[VERIFIED source] Paint and Erase mouse drags preview the filled rectangle, then apply it once on mouse-up. A click still edits one tile, and controller A still edits the cursor tile. One drag creates one undo step and no client-side shared-state write; Save retains the established server request and validation path. This replaces per-tile draft rebuilds on every mouse move. Draft edits also reuse normalized row runs rather than expanding and sorting the entire geometry multiple times; the server's existing geometry validator is unchanged. [TESTED offline] Editor fixture covers enclosed tiles, preview stability, single undo, click and cancelled drag. Geometry fixtures compare row-for-row against the original edit algorithm. A local Lua 5.1 benchmark of 20 single-tile erases in a 4,096-tile room measured 39.02 ms/edit before and 13.22 ms/edit after for geometry processing only. [RUNTIME GATE] Native lag/visual/controller and dedicated multiplayer acceptance remain untested.
 
 [VERIFIED source] Current .5 extends the .3 contextual editor and .4 designation/navigation work with compatible feature additions; see ROOM_DESIGNATIONS.md for the MINOR-scope rationale, API/persistence details and current evidence. Creating a
 room advances to a blank draft on the same floor; editing retains and reloads

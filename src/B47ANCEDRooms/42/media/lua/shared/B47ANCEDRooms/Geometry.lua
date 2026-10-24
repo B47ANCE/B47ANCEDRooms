@@ -48,6 +48,40 @@ function G.edit(rows,addition,remove,limit)
  local list={};for _,t in pairs(tiles) do list[#list+1]=t end
  return G.fromTiles(list,limit)
 end
+-- Drafts already hold a normalized shape. Edit its row runs directly instead
+-- of expanding, sorting and normalizing the full tile set several times.
+function G.editShape(shape,addition,remove,limit)
+ if not shape or not shape.rows then return nil,'RoomGeometryInvalid' end
+ local region,e=G.normalize(addition);if not region then return nil,e end
+ local byRow={}
+ local function row(z,y)
+  local key=z..':'..y;local entry=byRow[key]
+  if not entry then entry={z=z,y=y,runs={}};byRow[key]=entry end
+  return entry.runs
+ end
+ for _,r in ipairs(shape.rows) do local runs=row(r[1],r[2]);runs[#runs+1]={r[3],r[4]} end
+ for _,r in ipairs(region.rows) do
+  local runs=row(r[1],r[2]);local nextRuns={}
+  if remove then
+   for _,run in ipairs(runs) do
+    if run[1]<r[3] then nextRuns[#nextRuns+1]={run[1],math.min(run[2],r[3]-1)} end
+    if run[2]>r[4] then nextRuns[#nextRuns+1]={math.max(run[1],r[4]+1),run[2]} end
+   end
+  else
+   runs[#runs+1]={r[3],r[4]}
+   table.sort(runs,function(a,b) return a[1]<b[1] end)
+   for _,run in ipairs(runs) do
+    local last=nextRuns[#nextRuns]
+    if last and run[1]<=last[2]+1 then last[2]=math.max(last[2],run[2])
+    else nextRuns[#nextRuns+1]={run[1],run[2]} end
+   end
+  end
+  byRow[r[1]..':'..r[2]].runs=nextRuns
+ end
+ local rows={}
+ for _,entry in pairs(byRow) do for _,run in ipairs(entry.runs) do rows[#rows+1]={entry.z,entry.y,run[1],run[2]} end end
+ return G.normalize(rows,limit)
+end
 function G.fromTiles(tiles,limit)
  if #tiles>G.tileLimit*2 then return nil,'RoomTooLarge' end
  table.sort(tiles,function(a,b) if a.z~=b.z then return a.z<b.z end;if a.y~=b.y then return a.y<b.y end;return a.x<b.x end)

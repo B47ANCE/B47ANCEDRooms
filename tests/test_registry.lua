@@ -9,6 +9,17 @@ local function rect(x,y,x2,y2,z) return assert(G.rectangle({x=x,y=y,z=z or 0},{x
 local box=rect(0,0,3,2);assert(box.count==12)
 local l=assert(G.edit(box.rows,rect(1,1,3,2).rows,true));assert(l.count==6 and not G.contains(l,1,1,0) and G.components(l)==1)
 local joined=assert(G.edit(l.rows,{{1,0,0,0}},false));assert(joined.count==7 and G.components(joined)==2)
+-- The draft row-run path must match the established tile-set edit semantics.
+for _,source in ipairs({G.normalize({}),box,rect(0,0,7,7)}) do
+ for _,region in ipairs({rect(1,1,3,3),rect(-2,-2,2,2),rect(5,5,9,9),rect(0,0,0,0)}) do
+  for _,remove in ipairs({false,true}) do
+   local old=assert(G.edit(source.rows,region.rows,remove))
+   local fast=assert(G.editShape(source,region.rows,remove))
+   assert(fast.count==old.count and #fast.rows==#old.rows,'draft edit count differs')
+   for i,r in ipairs(old.rows) do for k=1,4 do assert(fast.rows[i][k]==r[k],'draft edit rows differ') end end
+  end
+ end
+end
 assert(not G.normalize({{0,0,0,4096}}));assert(not G.normalize({{0,0,0,1},bad=true}))
 assert(not G.normalize({{0,0,0,1/0}}));assert(not G.normalize({{0,0,0,1}},1))
 local d=Draft.new({rows=box.rows})

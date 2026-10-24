@@ -14,7 +14,7 @@ function D:set(g,action,second,ids)
 end
 function D:edit(rows,remove)
  if self.action~='save' then return nil,'RoomFinishCompound' end
- local g,e=G.edit(self.geometry.rows,rows,remove)
+ local g,e=G.editShape(self.geometry,rows,remove)
  if not g then return nil,e end
  self:set(g);return true
 end

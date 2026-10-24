@@ -194,7 +194,7 @@ function E:saveSucceeded(submission)
  if self.closed then return end
  -- Creates advance; existing edits reload their authoritative record. Both wait
  -- for a fresh lease, without ending this editor session or restoring its parent.
- self.revision=nil;self.editKey=nil;self.down=false;self.dragStart=nil;self.lastPaint=nil
+ self.revision=nil;self.editKey=nil;self.down=false;self.dragStart=nil
  self:setCapture(false);self.disconnected=false
  local args=submission.args;if not args.id and args.action=='save' then self.lastLabels={roomType=args.roomType,designation=args.designation} end
  local id=args.id and args.action~='delete' and args.id
@@ -263,8 +263,7 @@ function E:onMouseDown(x,y)
  if x>=self.sidebar.x then return true end
  self.worldFocus=true;self.cursor=self:mouseTile()
  if self.tool=='RoomSelect' then self:selectAtCursor();return true end
- self.down=true;self.dragStart=self.cursor;self.lastPaint=nil
- if self.tool=='RoomPaint' or self.tool=='RoomErase' then self:point() end
+ self.down=true;self.dragStart=self.cursor
  self:setCapture(true);return true
 end
 function E:onMouseMove(dx,dy)
@@ -272,8 +271,6 @@ function E:onMouseMove(dx,dy)
  if self:isBusy() then return true end
  self.cursor=self:mouseTile()
  if not self.down then return true end
- local key=G.key(self.cursor.x,self.cursor.y,self.cursor.z)
- if (self.tool=='RoomPaint' or self.tool=='RoomErase') and key~=self.lastPaint then self.lastPaint=key;self:point() end
  return true
 end
 function E:onMouseUp(x,y)
@@ -281,9 +278,11 @@ function E:onMouseUp(x,y)
  if self:isBusy() then return true end
  if self.down then
   self.cursor=self:mouseTile();self.down=false;self:setCapture(false)
-  if self.tool~='RoomPaint' and self.tool~='RoomErase' then
-   if self.dragStart.x~=self.cursor.x or self.dragStart.y~=self.cursor.y then self:apply(self.dragStart,self.cursor);self.first=nil else self:point() end
-  end
+  if self.tool=='RoomPaint' or self.tool=='RoomErase' then
+   self:apply(self.dragStart,self.cursor)
+  elseif self.dragStart.x~=self.cursor.x or self.dragStart.y~=self.cursor.y then
+   self:apply(self.dragStart,self.cursor);self.first=nil
+  else self:point() end
  end
  return true
 end

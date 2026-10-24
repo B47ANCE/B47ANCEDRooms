@@ -1,6 +1,6 @@
 # Standalone Rooms API, authority and acceptance
 
-Project Version: 0.2.0-dev.7
+Project Version: 0.2.0-dev.8
 
 ## Scope and compatibility
 

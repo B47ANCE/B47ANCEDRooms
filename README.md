@@ -1,6 +1,6 @@
 # B47ANCE'd Rooms
 
-Project Version: 0.2.0-dev.7
+Project Version: 0.2.0-dev.8
 
 ![B47ANCE'd Rooms project thumbnail](artwork/thumbnail.png)
 
@@ -9,6 +9,8 @@ The mod icon uses the room subject on a transparent background, without text. Th
 Standalone Lua-only room designation and server-owned permissions for Project Zomboid Build 42.21.0. Mod ID **B47ANCEDRooms**; existing [Workshop item 3820077442](https://steamcommunity.com/sharedfiles/filedetails/?id=3820077442). Quartermaster is an optional consumer, never a Rooms dependency.
 
 The development version keeps vanilla **building detection** and uses only **player-designated rooms**. Vanilla room definitions are never read. Open Designate Rooms to an empty draft, draw and name rooms, then confirm the server save. The list shows saved designations in the current physical building. Use **Save & Next** to create a room in one action and start the next blank draft on the same floor. Editing uses **Save Changes** and retains/reloads the selected room. **Done** closes the editor and asks before discarding unsaved work. Geometry replacement, deletion, merges/splits, incomplete/disconnected previews and ownership/permission changes retain confirmation. The sidebar shows saved-room controls only when relevant; advanced operations are collapsed and visitor fields appear only while managing visitors. Use **Select Room** to click a saved outline; overlaps offer a choice and hovered names appear in the sidebar. The building list groups rooms by floor and shows their type/storage role. The active floor receives overlay priority (eight rooms plus the selected room); use the list for others. Choose one of 14 **room types** and a **Primary/Secondary/Unassigned storage role**, then save through the same create/edit flow. Existing rooms default to Unassigned. These labels do not route items or set quotas. See [designations, APIs and authority evidence](docs/ROOM_DESIGNATIONS.md) and the [editor flow and validation](docs/EDITOR_FLOW.md). Detect Walls is an explicit preview tool; rectangles, paint/erase, explicit floors, undo/redo, merge/split and the existing popup/zoom fixes remain.
+
+Paint and Erase mouse drags now edit the entire outlined rectangle on release, with one undo step per drag. A single click or controller A still edits one tile. This source-only dev.8 correction avoids rebuilding geometry for every tile crossed during a drag; native responsiveness has not yet been tested.
 
 The current editor also includes live server-change updates with protected draft recovery, name/type/role/floor search and filters, saved permission summaries, optional repeated type/role entry and server-validated permission copying. **Save/Done stay visible in a fixed footer** while details scroll. Permission-copy previews distinguish keeping target visitor grants from replacing them. See [implementation status, authority review and acceptance checklist](docs/WORKFLOW_COMPLETION.md). Native UI, real saves and dedicated acceptance remain untested.
 

@@ -87,6 +87,29 @@ editor:onMouseDown(100,100);assert(editor.capture)
 cursorX=1;editor:onMouseMove(1,0);editor:onMouseUp(100,100)
 assert(not editor.capture and editor.draft.geometry.count==2)
 assert(not ModData.getOrCreate('B47ANCEDRooms').customRooms,'preview movement persisted')
+-- Mouse brush drags preview a filled rectangle and commit it once on release.
+local originalDraft=editor.draft
+editor.draft=Q.Draft.new()
+editor.draft:set(assert(Q.Geometry.rectangle({x=0,y=0,z=0},{x=4,y=4,z=0})))
+editor.tool='RoomErase';cursorX=1;cursorY=1
+local history=#editor.draft.history
+editor:onMouseDown(100,100)
+cursorX=3;cursorY=3;editor:onMouseMove(2,2)
+assert(editor.draft.geometry.count==25 and #editor.draft.history==history,'erase mutated the draft during drag')
+editor:onMouseUp(100,100)
+assert(editor.draft.geometry.count==16 and not Q.Geometry.contains(editor.draft.geometry,2,2,0),'erase missed the box interior')
+assert(#editor.draft.history==history+1,'erase drag created multiple undo steps')
+assert(editor.draft:undo() and editor.draft.geometry.count==25,'erase drag did not undo as one edit')
+editor.draft=Q.Draft.new();editor.tool='RoomPaint';cursorX=1;cursorY=1
+editor:onMouseDown(100,100);cursorX=3;cursorY=3;editor:onMouseMove(2,2)
+assert(editor.draft.geometry.count==0,'paint mutated the draft during drag')
+editor:onMouseUp(100,100)
+assert(editor.draft.geometry.count==9 and Q.Geometry.contains(editor.draft.geometry,2,2,0),'paint missed the box interior')
+cursorX=5;cursorY=5;editor:onMouseDown(100,100);editor:onMouseUp(100,100)
+assert(editor.draft.geometry.count==10 and Q.Geometry.contains(editor.draft.geometry,5,5,0),'single-click paint changed')
+cursorX=6;cursorY=6;editor:onMouseDown(100,100);editor:onRightMouseDown()
+assert(editor.draft.geometry.count==10 and not editor.capture,'cancelled drag changed the draft')
+editor.draft=originalDraft
 editor.tool='RoomRemoveRectangle';editor.worldFocus=true;editor.cursor={x=0,y=0,z=0}
 editor:onJoypadDown(Joypad.AButton);editor:onJoypadDirRight();editor:onJoypadDown(Joypad.AButton)
 assert(editor.draft.geometry.count==0,'controller rectangle did not match mouse geometry')

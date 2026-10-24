@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0-dev.8]
+
+- Fix Paint/Erase mouse drags so the outlined rectangle applies once on release and includes every tile inside it. Each drag is one undo step; clicks and controller single-tile actions retain their behavior.
+- Remove per-cursor-tile geometry and outline rebuilds during dragging. Reuse normalized draft row runs for edits while preserving the original geometry result and limits. In an offline Lua 5.1 4,096-tile single-erase comparison, the geometry operation fell from 39.02 ms to 13.22 ms per edit; native responsiveness remains untested. Full offline regression passes; dedicated multiplayer remains NOT TESTED. Source-only iteration, not deployed or published.
+
 ## [0.2.0-dev.7]
 - Compatible PATCH-scope presentation update within the 0.2 prerelease line: replace only the mod icon with a transparent, text-free room derived from the selected thumbnail. Preserve the Workshop thumbnail and runtime poster byte-for-byte; retain full-size icon source and previous icon. No gameplay, API, protocol, save or sandbox changes.
 - Explicitly authorized existing-item Workshop MP test distribution, including the previously merged .6 allocation-provider regressions. Offline/package validation and publication receipts are recorded in docs/WORKSHOP_ICON_PUBLICATION.md. Native UI and dedicated multiplayer remain NOT TESTED; G7/stable G8 BLOCKED.
