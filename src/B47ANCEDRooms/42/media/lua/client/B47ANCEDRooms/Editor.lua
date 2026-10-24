@@ -194,7 +194,7 @@ function E:saveSucceeded(submission)
  if self.closed then return end
  -- Creates advance; existing edits reload their authoritative record. Both wait
  -- for a fresh lease, without ending this editor session or restoring its parent.
- self.revision=nil;self.editKey=nil;self.down=false;self.dragStart=nil;self.lastPaint=nil
+ self.revision=nil;self.editKey=nil;self.down=false;self.dragStart=nil
  self:setCapture(false);self.disconnected=false
  local args=submission.args;if not args.id and args.action=='save' then self.lastLabels={roomType=args.roomType,designation=args.designation} end
  local id=args.id and args.action~='delete' and args.id
@@ -263,8 +263,7 @@ function E:onMouseDown(x,y)
  if x>=self.sidebar.x then return true end
  self.worldFocus=true;self.cursor=self:mouseTile()
  if self.tool=='RoomSelect' then self:selectAtCursor();return true end
- self.down=true;self.dragStart=self.cursor;self.lastPaint=nil
- if self.tool=='RoomPaint' or self.tool=='RoomErase' then self:point() end
+ self.down=true;self.dragStart=self.cursor
  self:setCapture(true);return true
 end
 function E:onMouseMove(dx,dy)
@@ -272,8 +271,6 @@ function E:onMouseMove(dx,dy)
  if self:isBusy() then return true end
  self.cursor=self:mouseTile()
  if not self.down then return true end
- local key=G.key(self.cursor.x,self.cursor.y,self.cursor.z)
- if (self.tool=='RoomPaint' or self.tool=='RoomErase') and key~=self.lastPaint then self.lastPaint=key;self:point() end
  return true
 end
 function E:onMouseUp(x,y)
@@ -281,9 +278,11 @@ function E:onMouseUp(x,y)
  if self:isBusy() then return true end
  if self.down then
   self.cursor=self:mouseTile();self.down=false;self:setCapture(false)
-  if self.tool~='RoomPaint' and self.tool~='RoomErase' then
-   if self.dragStart.x~=self.cursor.x or self.dragStart.y~=self.cursor.y then self:apply(self.dragStart,self.cursor);self.first=nil else self:point() end
-  end
+  if self.tool=='RoomPaint' or self.tool=='RoomErase' then
+   self:apply(self.dragStart,self.cursor)
+  elseif self.dragStart.x~=self.cursor.x or self.dragStart.y~=self.cursor.y then
+   self:apply(self.dragStart,self.cursor);self.first=nil
+  else self:point() end
  end
  return true
 end
@@ -504,6 +503,7 @@ function E:updateSidebar()
  self.buttons.RoomPermissions:setEnable(not busy and saved and not dirty)
  self.buttons.RoomPermissions:setTooltip(tr(dirty and 'RoomSaveBeforePolicy' or 'RoomPermissionsHelp'))
  self.buttons.RoomCopyPermissions:setEnable(not busy and not dirty and not self.stale and hasCopySource and saved and record.canConfigureRoom==true)
+ self.buttons.RoomDelete:setEnable(not busy and not self.stale and saved and record.canEditGeometry==true)
  self.buttons.RoomRepeat:setTitle(tr(self.keepLabels and 'RoomRepeatOn' or 'RoomRepeatOff'))
  self.buttons.RoomSummary:setTitle(tr(self.summaryOpen and 'RoomSummaryHide' or 'RoomSummaryShow'))
  self.filterButton:setEnable(not busy);self.searchEntry:setEditable(not busy);self.searchControls.clear:setEnable(not busy)
@@ -567,6 +567,7 @@ function E:createChildren()
   {'RoomFloorUp',function() self:setFloor(self.floor+1) end})
  row('saved',{'RoomSummary',function() self.summaryOpen=not self.summaryOpen;self:updateSidebar() end},{'RoomPermissions',E.permissions})
  row('saved',{'RoomCopyPermissions',E.copyPermissionsMenu})
+ row('saved',{'RoomDelete',function() if self.record then self:submit('delete') end end})
  row('basic',{'RoomRepeat',function() self.keepLabels=not self.keepLabels;self:updateSidebar() end})
  row('visitor',{'RoomVisitor',E.visitorMenu},{'RoomHideVisitors',function() self.visitorEditing=false;self:updateSidebar() end})
  row('refresh',{'RoomReload',function() self:refresh({live=true}) end})
@@ -577,7 +578,6 @@ function E:createChildren()
  row('advancedSaved',{'RoomDuplicate',function()
   if self.record and self.draft.action=='save' then local rows=self.draft.geometry.rows;local title=self.nameEntry:getInternalText();self:load({name=title,rows=rows,roomType=self.roomType,designation=self.designation});self.record=nil end
  end},{'RoomCombine',E.combine,'geometry'})
- row('advancedGeometry',{'RoomDelete',function() if self.record then self:submit('delete') end end})
  row('footer',{'Save',function() self:submit() end},{'Done',E.requestClose})
  U.skin(self.buttons.Save,'button','primary');U.skin(self.buttons.RoomDelete,'button','destructive')
  self.buttons.RoomDesignation:setTooltip(tr('RoomDesignationHelp'))

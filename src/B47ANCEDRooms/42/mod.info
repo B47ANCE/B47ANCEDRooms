@@ -1,8 +1,9 @@
 name=B47ANCE'd Rooms
 id=B47ANCEDRooms
+require=B47ANCEDUI
 author=B47ANCE
-modversion=0.2.0-dev.7
+modversion=0.2.0-dev.9
 versionMin=42.21.0
-description=Standalone room designation and server-owned room policy APIs. Development source; dedicated multiplayer NOT TESTED. Room policies do not claim to secure unrelated vanilla actions.
+description=Room designation and server-owned room policy APIs. Requires B47ANCEDUI client API 1 for the editor. Development source; dedicated multiplayer NOT TESTED. Room policies do not claim to secure unrelated vanilla actions.
 icon=icon.png
 poster=poster.png

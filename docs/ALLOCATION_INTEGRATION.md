@@ -1,6 +1,6 @@
 # Designation PR reconciliation — 2026-10-17
 
-Project Version: 0.2.0-dev.7
+Project Version: 0.2.0-dev.9
 
 Compatible PATCH test/documentation checkpoint from 0.2.0-dev.5 main
 fade0a0bf34c4cda6de0c1fd663c6d32eb17ef97. The old PR #2 head

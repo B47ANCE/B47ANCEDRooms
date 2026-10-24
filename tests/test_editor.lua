@@ -6,6 +6,7 @@ require 'B47ANCEDRooms/Editor'
 function ISScrollingListBox:setOnMouseDownFunction(target,fn) self.target=target;self.onmousedown=fn end
 function ISButton:setEnable(v) self.enable=v end
 local Q,U=B47ANCEDRooms,B47RoomsUI
+assert(U.consumerID=='B47ANCEDRooms' and U.Appearance,'editor did not use the B47ANCEDUI consumer API')
 local f=CONTAINER_FIXTURE;local E=Q.Editor
 getPlayerScreenLeft=function() return 0 end;getPlayerScreenTop=function() return 0 end
 local width,height=1280,720
@@ -87,6 +88,29 @@ editor:onMouseDown(100,100);assert(editor.capture)
 cursorX=1;editor:onMouseMove(1,0);editor:onMouseUp(100,100)
 assert(not editor.capture and editor.draft.geometry.count==2)
 assert(not ModData.getOrCreate('B47ANCEDRooms').customRooms,'preview movement persisted')
+-- Mouse brush drags preview a filled rectangle and commit it once on release.
+local originalDraft=editor.draft
+editor.draft=Q.Draft.new()
+editor.draft:set(assert(Q.Geometry.rectangle({x=0,y=0,z=0},{x=4,y=4,z=0})))
+editor.tool='RoomErase';cursorX=1;cursorY=1
+local history=#editor.draft.history
+editor:onMouseDown(100,100)
+cursorX=3;cursorY=3;editor:onMouseMove(2,2)
+assert(editor.draft.geometry.count==25 and #editor.draft.history==history,'erase mutated the draft during drag')
+editor:onMouseUp(100,100)
+assert(editor.draft.geometry.count==16 and not Q.Geometry.contains(editor.draft.geometry,2,2,0),'erase missed the box interior')
+assert(#editor.draft.history==history+1,'erase drag created multiple undo steps')
+assert(editor.draft:undo() and editor.draft.geometry.count==25,'erase drag did not undo as one edit')
+editor.draft=Q.Draft.new();editor.tool='RoomPaint';cursorX=1;cursorY=1
+editor:onMouseDown(100,100);cursorX=3;cursorY=3;editor:onMouseMove(2,2)
+assert(editor.draft.geometry.count==0,'paint mutated the draft during drag')
+editor:onMouseUp(100,100)
+assert(editor.draft.geometry.count==9 and Q.Geometry.contains(editor.draft.geometry,2,2,0),'paint missed the box interior')
+cursorX=5;cursorY=5;editor:onMouseDown(100,100);editor:onMouseUp(100,100)
+assert(editor.draft.geometry.count==10 and Q.Geometry.contains(editor.draft.geometry,5,5,0),'single-click paint changed')
+cursorX=6;cursorY=6;editor:onMouseDown(100,100);editor:onRightMouseDown()
+assert(editor.draft.geometry.count==10 and not editor.capture,'cancelled drag changed the draft')
+editor.draft=originalDraft
 editor.tool='RoomRemoveRectangle';editor.worldFocus=true;editor.cursor={x=0,y=0,z=0}
 editor:onJoypadDown(Joypad.AButton);editor:onJoypadDirRight();editor:onJoypadDown(Joypad.AButton)
 assert(editor.draft.geometry.count==0,'controller rectangle did not match mouse geometry')
@@ -191,10 +215,19 @@ assert(not flow.buttons.Save.enable and flow.buttons.Done.enable)
 local meta;for _,room in ipairs(flow.metadata) do if room.id==firstId then meta=room end end;assert(meta)
 flow:select(meta);flow:updateSidebar()
 assert(flow.record.id==firstId and flow.buttons.RoomPermissions:isVisible() and not flow.accountEntry:isVisible())
+assert(flow.buttons.RoomDelete:isVisible() and flow.buttons.RoomDelete.enable,'saved room delete action is not accessible')
+flow.record.canEditGeometry=false;flow:updateSidebar()
+assert(flow.buttons.RoomDelete:isVisible() and not flow.buttons.RoomDelete.enable,'protected room exposed delete action')
+flow.record.canEditGeometry=true;flow:updateSidebar()
+assert(flow.buttons.RoomDelete.enable,'editable room did not restore delete action')
+confirmation=nil;flow.buttons.RoomDelete.onclick(flow)
+assert(confirmation and confirmation.text:find(getText('UI_B47Rooms_RoomDeleteConfirm', 'r'..tostring(flow.record.ordinal)),1,true),
+ 'visible delete did not open the existing room confirmation')
+confirmation.callback('cancel');assert(not flow.submission and flow.record.id==firstId,'cancelled delete modified the room')
 assert(flow.buttons.Save.title==getText('UI_B47Rooms_RoomSaveChanges'))
 flow.buttons.RoomAdvanced.onclick(flow);assert(flow.buttons.RoomDelete:isVisible() and flow.buttons.RoomDuplicate:isVisible())
 local expandedY=flow.statusY
-flow.buttons.RoomAdvanced.onclick(flow);assert(not flow.buttons.RoomDelete:isVisible())
+flow.buttons.RoomAdvanced.onclick(flow);assert(flow.buttons.RoomDelete:isVisible())
 assert(flow.statusY<expandedY,'collapsed controls left empty sidebar rows')
 for _,row in ipairs(flow.joypadButtonsY) do for _,control in ipairs(row) do assert(control:isVisible(),'hidden controls entered controller navigation') end end
 flow.nameEntry:setText('Workshop Renamed');confirmation=nil;flow:submit()

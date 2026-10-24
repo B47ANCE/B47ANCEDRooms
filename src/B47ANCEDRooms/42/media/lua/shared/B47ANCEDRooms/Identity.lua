@@ -1,5 +1,5 @@
 B47ANCEDRooms=B47ANCEDRooms or {}
-local I={version='0.2.0-dev.7',api=1};B47ANCEDRooms.Identity=I
+local I={version='0.2.0-dev.9',api=1};B47ANCEDRooms.Identity=I
 -- Native safehouses persist account usernames. These are authenticated login
 -- identities, not character/display names; Java long SteamIDs risk Lua rounding.
 function I.account(player)

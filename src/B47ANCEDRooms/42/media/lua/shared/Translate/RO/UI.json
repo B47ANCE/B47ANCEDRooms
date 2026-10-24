@@ -280,7 +280,7 @@
   "UI_B47Rooms_RoomClear": "Clear Preview",
   "UI_B47Rooms_RoomCombine": "Combine Rooms",
   "UI_B47Rooms_RoomDuplicate": "Duplicate",
-  "UI_B47Rooms_RoomDelete": "Clear Designation",
+  "UI_B47Rooms_RoomDelete": "Delete Room",
   "UI_B47Rooms_RoomFloorDown": "Floor Down",
   "UI_B47Rooms_RoomFloorUp": "Floor Up",
   "UI_B47Rooms_RoomDisconnectedToggle": "Allow Disconnected Regions",
