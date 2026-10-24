@@ -7,7 +7,7 @@ Version 0.2.0-dev.9.
 
 MP testing build - dedicated multiplayer NOT TESTED
 
-Paint/Erase mouse drags preview and apply the filled rectangle once on release, with one undo step. This dev.8 source change awaits native visual and multiplayer testing.
+Paint/Erase mouse drags preview and apply the filled rectangle once on release, with one undo step. This behavior awaits native visual and multiplayer testing.
 
 Save & Next creates a room and starts the next blank draft on the same floor. Save Changes retains and reloads the selected room. Done protects unsaved work. Select a saved room to see Delete Room; deletion still requires confirmation and server permission. Routine create/rename uses one save action; incomplete and permission/ownership operations retain confirmation. Advanced operations are collapsed, and visitor fields appear only while managing visitors.
 
@@ -31,7 +31,7 @@ Live server-change updates protect dirty drafts and offer explicit conflict reco
 - Data-only migration of legacy Quartermaster custom rooms into the independent Rooms registry, preserving original recovery data.
 
 ## Compatibility & Requirements
-Mod ID: B47ANCEDRooms. Workshop ID: 3820077442. Lua-only runtime; no custom Java/JAR dependency. Requires Build 42.21.0 or a compatible later build; other builds have not been verified. No other mod is required by Rooms.
+Mod ID: B47ANCEDRooms. Workshop ID: 3820077442. Lua-only runtime; no custom Java/JAR dependency. Requires B47ANCEDUI (client API 1) for the editor, and Build 42.21.0 or a compatible later build; other builds have not been verified. Quartermaster is optional.
 
 For Clean Building, subscribe to and enable both Rooms and B47ANCE'd Quartermaster on the server and every client. Quartermaster 0.8.0-dev.1 consumes Rooms API 1 with cleaning capability 1. Its existing right-click Clean Building command fetches eligible supplies, adds 10 mL bleach by default before filling the remaining bucket capacity with water, uses supported native blood/grime cleaning, then returns borrowed supplies when permitted.
 
