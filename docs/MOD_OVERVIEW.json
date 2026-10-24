@@ -2,13 +2,17 @@
   "schema": 1,
   "id": "rooms",
   "name": "Rooms",
-  "version": "0.2.0-dev.8",
+  "version": "0.2.0-dev.9",
   "reviewed": true,
-  "source_digest": "9eb8c10d2e08beb1de8fa3ee793b208c8a75cae40e6084132e86beef9b442d34",
+  "source_digest": "83e4e2e3d15bb2501b85cc7acfb23798540947f214452fe7014b1e1b2e2ef979",
   "features": [
     {
       "status": "Source",
       "text": "Draw, paint, erase, merge and split designated rooms across floors; Paint/Erase mouse drags apply the complete rectangle once on release with one undo step, using normalized row-run draft editing."
+    },
+    {
+      "status": "Source",
+      "text": "A visible Delete Room action for selected saved rooms; the editor uses required B47ANCEDUI client API 1 for shared presentation."
     },
     {
       "status": "Source",
@@ -26,8 +30,15 @@
   "limits": "Metadata does not grant inventory access, route items or enforce unrelated vanilla actions. Native room overrides stay removed. Native/dedicated NOT TESTED; G7/stable G8 BLOCKED.",
   "evidence": [
     "README.md",
+    "docs/UX_AUDIT_DEV9.md",
     "docs/ALLOCATION_INTEGRATION.md",
     "docs/EDITOR_FLOW.md"
   ],
-  "relations": []
+  "relations": [
+    {
+      "target": "ui",
+      "kind": "Required",
+      "text": "B47ANCEDUI client API 1 supplies the Rooms editor's shared presentation controls."
+    }
+  ]
 }

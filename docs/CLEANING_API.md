@@ -1,6 +1,6 @@
 # Cleaning consumer API
 
-Project Version: 0.2.0-dev.8
+Project Version: 0.2.0-dev.9
 
 This is the Rooms side of the authorized offline Auto Clean integration. Rooms
 uses vanilla physical building detection plus player-designated room geometry and owns cleaning permission. Vanilla room definitions are never read. It never searches

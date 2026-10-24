@@ -1,15 +1,15 @@
 # B47ANCE'd Rooms
 
 ## Overview
-Standalone room designation and server-owned room permissions for Project Zomboid Build 42.21.0.
+Room designation and server-owned room permissions for Project Zomboid Build 42.21.0. Requires B47ANCEDUI for the editor; Quartermaster remains optional.
 
-Version 0.2.0-dev.8.
+Version 0.2.0-dev.9.
 
 MP testing build - dedicated multiplayer NOT TESTED
 
 Paint/Erase mouse drags preview and apply the filled rectangle once on release, with one undo step. This dev.8 source change awaits native visual and multiplayer testing.
 
-Save & Next creates a room and starts the next blank draft on the same floor. Save Changes retains and reloads the selected room. Done protects unsaved work. Routine create/rename uses one save action; destructive, incomplete and permission/ownership operations retain confirmation. Saved-room controls appear when relevant, advanced operations are collapsed, and visitor fields appear only while managing visitors.
+Save & Next creates a room and starts the next blank draft on the same floor. Save Changes retains and reloads the selected room. Done protects unsaved work. Select a saved room to see Delete Room; deletion still requires confirmation and server permission. Routine create/rename uses one save action; incomplete and permission/ownership operations retain confirmation. Advanced operations are collapsed, and visitor fields appear only while managing visitors.
 
 Development 0.2 uses only player-designated rooms within vanilla-detected buildings. Vanilla room definitions, Native Outline and Restore Vanilla are removed; existing overrides keep their saved geometry and permissions as ordinary designations. Building cleaning covers designated tiles only.
 

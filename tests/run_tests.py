@@ -1,14 +1,21 @@
 """Offline source tests only. Does not launch, package, deploy or publish."""
 from pathlib import Path
-import sys, json, re
+import sys, json, re, os
 ROOT=Path(__file__).resolve().parents[1]
 sys.path.insert(0,str(ROOT/'.test-deps'))
 from lupa.lua51 import LuaRuntime
 SOURCE=ROOT/'src/B47ANCEDRooms'
+UI_SOURCE=Path(os.environ['B47ANCED_UI_SOURCE']) if os.environ.get('B47ANCED_UI_SOURCE') else next(
+    (candidate/'B47ANCEDUI'/'src'/'B47ANCEDUI' for candidate in (ROOT.parent, ROOT.parent.parent)
+     if (candidate/'B47ANCEDUI'/'src'/'B47ANCEDUI'/'42/media/lua/client/B47ANCEDUI/API.lua').is_file()),
+    ROOT.parent/'B47ANCEDUI'/'src'/'B47ANCEDUI')
+if not (UI_SOURCE/'42/media/lua/client/B47ANCEDUI/API.lua').is_file():
+    raise SystemExit('B47ANCEDUI source is required for paired offline UI checks; set B47ANCED_UI_SOURCE')
 def runtime():
     lua=LuaRuntime(unpack_returned_tuples=True)
     lua.globals().TEST_ROOT=(ROOT/'tests').as_posix()
     lua.globals().package.path=';'.join((SOURCE/f'42/media/lua/{side}/?.lua').as_posix() for side in ['shared','client'])+';'+lua.globals().package.path
+    lua.globals().package.path=';'.join((UI_SOURCE/f'42/media/lua/{side}/?.lua').as_posix() for side in ['shared','client'])+';'+lua.globals().package.path
     return lua
 for p in SOURCE.rglob('*.lua'):
     code=p.read_text(encoding='utf-8')

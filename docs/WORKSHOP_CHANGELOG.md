@@ -1,4 +1,6 @@
-# Version 0.2.0-dev.8
+# Version 0.2.0-dev.9
+
+The selected saved room now has a visible Delete Room button with confirmation. The editor uses B47ANCEDUI client API 1, now a required dependency, instead of carrying a duplicate UI toolkit.
 
 MP testing build - dedicated multiplayer NOT TESTED
 

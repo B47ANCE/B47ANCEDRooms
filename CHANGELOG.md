@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0-dev.9]
+
+- Show **Delete Room** beside the saved-room actions, without opening Advanced. Only a selected room with geometry-edit permission can use it; the existing confirmation and server-side revision/permission checks remain in force.
+- Use B47ANCEDUI client API 1 for the editor's shared controls, layout, theme, tooltips and appearance. Remove the duplicate Rooms presentation modules; retain the Rooms-owned confirmation interaction. B47ANCEDUI is now a required client dependency.
+- Paired offline tests pass with the shared UI source. Native visual and dedicated multiplayer acceptance remain untested; no deployment or Workshop publication in this iteration.
+
 ## [0.2.0-dev.8]
 
 - Fix Paint/Erase mouse drags so the outlined rectangle applies once on release and includes every tile inside it. Each drag is one undo step; clicks and controller single-tile actions retain their behavior.

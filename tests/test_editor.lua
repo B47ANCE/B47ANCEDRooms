@@ -6,6 +6,7 @@ require 'B47ANCEDRooms/Editor'
 function ISScrollingListBox:setOnMouseDownFunction(target,fn) self.target=target;self.onmousedown=fn end
 function ISButton:setEnable(v) self.enable=v end
 local Q,U=B47ANCEDRooms,B47RoomsUI
+assert(U.consumerID=='B47ANCEDRooms' and U.Appearance,'editor did not use the B47ANCEDUI consumer API')
 local f=CONTAINER_FIXTURE;local E=Q.Editor
 getPlayerScreenLeft=function() return 0 end;getPlayerScreenTop=function() return 0 end
 local width,height=1280,720
@@ -214,10 +215,19 @@ assert(not flow.buttons.Save.enable and flow.buttons.Done.enable)
 local meta;for _,room in ipairs(flow.metadata) do if room.id==firstId then meta=room end end;assert(meta)
 flow:select(meta);flow:updateSidebar()
 assert(flow.record.id==firstId and flow.buttons.RoomPermissions:isVisible() and not flow.accountEntry:isVisible())
+assert(flow.buttons.RoomDelete:isVisible() and flow.buttons.RoomDelete.enable,'saved room delete action is not accessible')
+flow.record.canEditGeometry=false;flow:updateSidebar()
+assert(flow.buttons.RoomDelete:isVisible() and not flow.buttons.RoomDelete.enable,'protected room exposed delete action')
+flow.record.canEditGeometry=true;flow:updateSidebar()
+assert(flow.buttons.RoomDelete.enable,'editable room did not restore delete action')
+confirmation=nil;flow.buttons.RoomDelete.onclick(flow)
+assert(confirmation and confirmation.text:find(getText('UI_B47Rooms_RoomDeleteConfirm', 'r'..tostring(flow.record.ordinal)),1,true),
+ 'visible delete did not open the existing room confirmation')
+confirmation.callback('cancel');assert(not flow.submission and flow.record.id==firstId,'cancelled delete modified the room')
 assert(flow.buttons.Save.title==getText('UI_B47Rooms_RoomSaveChanges'))
 flow.buttons.RoomAdvanced.onclick(flow);assert(flow.buttons.RoomDelete:isVisible() and flow.buttons.RoomDuplicate:isVisible())
 local expandedY=flow.statusY
-flow.buttons.RoomAdvanced.onclick(flow);assert(not flow.buttons.RoomDelete:isVisible())
+flow.buttons.RoomAdvanced.onclick(flow);assert(flow.buttons.RoomDelete:isVisible())
 assert(flow.statusY<expandedY,'collapsed controls left empty sidebar rows')
 for _,row in ipairs(flow.joypadButtonsY) do for _,control in ipairs(row) do assert(control:isVisible(),'hidden controls entered controller navigation') end end
 flow.nameEntry:setText('Workshop Renamed');confirmation=nil;flow:submit()

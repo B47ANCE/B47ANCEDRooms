@@ -1,12 +1,14 @@
 # B47ANCE'd Rooms
 
-Project Version: 0.2.0-dev.8
+Project Version: 0.2.0-dev.9
 
 ![B47ANCE'd Rooms project thumbnail](artwork/thumbnail.png)
 
 The mod icon uses the room subject on a transparent background, without text. The Workshop thumbnail and runtime poster retain their existing artwork. See [artwork provenance](artwork/README.md) and [current icon publication checks](docs/WORKSHOP_ICON_PUBLICATION.md).
 
-Standalone Lua-only room designation and server-owned permissions for Project Zomboid Build 42.21.0. Mod ID **B47ANCEDRooms**; existing [Workshop item 3820077442](https://steamcommunity.com/sharedfiles/filedetails/?id=3820077442). Quartermaster is an optional consumer, never a Rooms dependency.
+Lua-only room designation and server-owned permissions for Project Zomboid Build 42.21.0. Mod ID **B47ANCEDRooms**; existing [Workshop item 3820077442](https://steamcommunity.com/sharedfiles/filedetails/?id=3820077442). B47ANCEDUI client API 1 is required for the editor. Quartermaster is an optional consumer, never a Rooms dependency.
+
+Select a saved room to see **Delete Room** beside its other actions; deletion requires edit permission and confirmation. The editor uses B47ANCEDUI for shared controls, theme, layout, tooltips and appearance while retaining its Rooms-specific confirmation interaction. See the [current UX audit](docs/UX_AUDIT_DEV9.md) for native visual checks still needed.
 
 The development version keeps vanilla **building detection** and uses only **player-designated rooms**. Vanilla room definitions are never read. Open Designate Rooms to an empty draft, draw and name rooms, then confirm the server save. The list shows saved designations in the current physical building. Use **Save & Next** to create a room in one action and start the next blank draft on the same floor. Editing uses **Save Changes** and retains/reloads the selected room. **Done** closes the editor and asks before discarding unsaved work. Geometry replacement, deletion, merges/splits, incomplete/disconnected previews and ownership/permission changes retain confirmation. The sidebar shows saved-room controls only when relevant; advanced operations are collapsed and visitor fields appear only while managing visitors. Use **Select Room** to click a saved outline; overlaps offer a choice and hovered names appear in the sidebar. The building list groups rooms by floor and shows their type/storage role. The active floor receives overlay priority (eight rooms plus the selected room); use the list for others. Choose one of 14 **room types** and a **Primary/Secondary/Unassigned storage role**, then save through the same create/edit flow. Existing rooms default to Unassigned. These labels do not route items or set quotas. See [designations, APIs and authority evidence](docs/ROOM_DESIGNATIONS.md) and the [editor flow and validation](docs/EDITOR_FLOW.md). Detect Walls is an explicit preview tool; rectangles, paint/erase, explicit floors, undo/redo, merge/split and the existing popup/zoom fixes remain.
 

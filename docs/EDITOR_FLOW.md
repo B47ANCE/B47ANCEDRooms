@@ -1,6 +1,8 @@
 # Contextual room editor flow
 
-Project Version: 0.2.0-dev.8
+Project Version: 0.2.0-dev.9
+
+[VERIFIED source] Delete Room is visible for a selected saved room without expanding Advanced. It is disabled for a busy or stale editor or a room without geometry-edit permission; the existing confirmation and server-side revision/permission validation are unchanged. The editor now obtains shared controls/theme/layout/tooltips through B47ANCEDUI client API 1 while retaining its Rooms-specific confirmation behavior. [TESTED offline] Paired Rooms/UI source fixtures pass. [RUNTIME GATE] Native sizing, focus, appearance and dedicated multiplayer remain untested for this iteration. See UX_AUDIT_DEV9.md.
 
 [VERIFIED source] Paint and Erase mouse drags preview the filled rectangle, then apply it once on mouse-up. A click still edits one tile, and controller A still edits the cursor tile. One drag creates one undo step and no client-side shared-state write; Save retains the established server request and validation path. This replaces per-tile draft rebuilds on every mouse move. Draft edits also reuse normalized row runs rather than expanding and sorting the entire geometry multiple times; the server's existing geometry validator is unchanged. [TESTED offline] Editor fixture covers enclosed tiles, preview stability, single undo, click and cancelled drag. Geometry fixtures compare row-for-row against the original edit algorithm. A local Lua 5.1 benchmark of 20 single-tile erases in a 4,096-tile room measured 39.02 ms/edit before and 13.22 ms/edit after for geometry processing only. [RUNTIME GATE] Native lag/visual/controller and dedicated multiplayer acceptance remain untested.
 
