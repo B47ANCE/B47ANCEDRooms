@@ -1,6 +1,8 @@
 # B47ANCE'd Rooms
 
-Project Version: 0.2.0-dev.9
+The mod declares B47ANCEDUI as its required presentation dependency. Its shared bootstrap registers server transport on the server; client transport initializes in the client Lua phase after shared APIs load.
+
+Project Version: 0.2.0-dev.10
 
 ![B47ANCE'd Rooms project thumbnail](artwork/thumbnail.png)
 

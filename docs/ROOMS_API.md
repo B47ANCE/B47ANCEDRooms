@@ -1,6 +1,8 @@
 # Standalone Rooms API, authority and acceptance
 
-Project Version: 0.2.0-dev.9
+Project Version: 0.2.0-dev.10
+
+Client transport registration is loaded from `media/lua/client/B47RoomsClientBootstrap.lua` after shared APIs. The shared bootstrap registers the server transport only when `isServer()` is true. `mod.info` requires B47ANCEDUI for editor presentation. Offline source, dependency, headless transport and editor suites pass; native client and dedicated MP remain untested.
 
 ## Scope and compatibility
 

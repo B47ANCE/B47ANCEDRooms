@@ -1,6 +1,6 @@
 # Contextual room editor flow
 
-Project Version: 0.2.0-dev.9
+Project Version: 0.2.0-dev.10
 
 [VERIFIED source] Delete Room is visible for a selected saved room without expanding Advanced. It is disabled for a busy or stale editor or a room without geometry-edit permission; the existing confirmation and server-side revision/permission validation are unchanged. The editor now obtains shared controls/theme/layout/tooltips through B47ANCEDUI client API 1 while retaining its Rooms-specific confirmation behavior. [TESTED offline] Paired Rooms/UI source fixtures pass. [RUNTIME GATE] Native sizing, focus, appearance and dedicated multiplayer remain untested for this iteration. See UX_AUDIT_DEV9.md.
 
