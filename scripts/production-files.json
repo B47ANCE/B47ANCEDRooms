@@ -1,5 +1,6 @@
 [
   "42/icon.png",
+  "42/media/lua/client/B47RoomsClientBootstrap.lua",
   "42/media/lua/client/B47ANCEDRooms/Client.lua",
   "42/media/lua/client/B47ANCEDRooms/Draft.lua",
   "42/media/lua/client/B47ANCEDRooms/Editor.lua",

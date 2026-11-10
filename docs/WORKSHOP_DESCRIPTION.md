@@ -3,7 +3,7 @@
 ## Overview
 Room designation and server-owned room permissions for Project Zomboid Build 42.21.0. Requires B47ANCEDUI for the editor; Quartermaster remains optional.
 
-Version 0.2.0-dev.9.
+Version 0.2.0-dev.10.
 
 MP testing build - dedicated multiplayer NOT TESTED
 

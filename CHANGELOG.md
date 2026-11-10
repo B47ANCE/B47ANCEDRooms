@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.2.0-dev.10]
+
+- Register the Rooms client transport from the client Lua phase, after shared APIs are available; retain shared server transport registration and the required UI dependency.
+- Offline bootstrap and dependency checks pending native client and dedicated multiplayer acceptance. No deployment or Workshop publication.
+
 ## [0.2.0-dev.9]
 
 - Show **Delete Room** beside the saved-room actions, without opening Advanced. Only a selected room with geometry-edit permission can use it; the existing confirmation and server-side revision/permission checks remain in force.

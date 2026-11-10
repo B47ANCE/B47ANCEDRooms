@@ -1,4 +1,6 @@
-# Version 0.2.0-dev.9
+# Version 0.2.0-dev.10
+
+Client transport now initializes during the client Lua phase, after shared APIs. Required UI dependency and server-owned room state are unchanged. Native client and dedicated multiplayer acceptance remain pending.
 
 The selected saved room now has a visible Delete Room button with confirmation. The editor uses B47ANCEDUI client API 1, now a required dependency, instead of carrying a duplicate UI toolkit.
 

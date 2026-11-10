@@ -17,6 +17,10 @@ def runtime():
     lua.globals().package.path=';'.join((SOURCE/f'42/media/lua/{side}/?.lua').as_posix() for side in ['shared','client'])+';'+lua.globals().package.path
     lua.globals().package.path=';'.join((UI_SOURCE/f'42/media/lua/{side}/?.lua').as_posix() for side in ['shared','client'])+';'+lua.globals().package.path
     return lua
+shared_bootstrap=(SOURCE/'42/media/lua/shared/B47RoomsBootstrap.lua').read_text(encoding='utf-8')
+phase=LuaRuntime(unpack_returned_tuples=True)
+phase.execute("isServer=function() return false end; package.loaded['B47ANCEDRooms/API']={}")
+phase.execute(shared_bootstrap)  # Client module deliberately unavailable in shared phase.
 for p in SOURCE.rglob('*.lua'):
     code=p.read_text(encoding='utf-8')
     runtime().execute('assert(loadstring(...))',code)
@@ -33,6 +37,11 @@ for p in SOURCE.rglob('*.lua'):
 for p in (SOURCE/'42/media/lua/shared/Translate').glob('*/UI.json'):
     assert json.loads(p.read_text(encoding='utf-8'))==english,p
 actual={p.relative_to(SOURCE).as_posix() for p in SOURCE.rglob('*') if p.is_file()}
+bootstrap=(SOURCE/'42/media/lua/shared/B47RoomsBootstrap.lua').read_text(encoding='utf-8')
+client_bootstrap=(SOURCE/'42/media/lua/client/B47RoomsClientBootstrap.lua').read_text(encoding='utf-8')
+assert "require 'B47ANCEDRooms/Client'" not in bootstrap
+assert "require 'B47ANCEDRooms/Client'" in client_bootstrap
+assert 'require=B47ANCEDUI' in (SOURCE/'42/mod.info').read_text(encoding='utf-8')
 assert len(actual)==len({n.casefold() for n in actual})
 assert not any(Path(n).suffix.lower() in {'.java','.jar','.class','.dll'} for n in actual)
 for p in SOURCE.rglob('*.lua'):

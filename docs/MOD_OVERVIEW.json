@@ -2,10 +2,14 @@
   "schema": 1,
   "id": "rooms",
   "name": "Rooms",
-  "version": "0.2.0-dev.9",
+  "version": "0.2.0-dev.10",
   "reviewed": true,
-  "source_digest": "83e4e2e3d15bb2501b85cc7acfb23798540947f214452fe7014b1e1b2e2ef979",
+  "source_digest": "22925d7383d852a42862d301455e5ee6ac1bc04795aaa03b94823a909bffc559",
   "features": [
+    {
+      "status": "Source",
+      "text": "Client transport registers during the client Lua phase; shared API and server transport retain their own load phase. UI remains the required presentation dependency."
+    },
     {
       "status": "Source",
       "text": "Draw, paint, erase, merge and split designated rooms across floors; Paint/Erase mouse drags apply the complete rectangle once on release with one undo step, using normalized row-run draft editing."
